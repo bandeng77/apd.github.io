@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Peminjaman APD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        header {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        
+        .form-group input, 
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+        }
+        
+        button {
+            background-color: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #1e40af;
+        }
+        
+        .back-button {
+            background-color: #6b7280;
+            margin-right: 15px;
+        }
+        
+        .back-button:hover {
+            background-color: #4b5563;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-shield-alt"></i> Form Peminjaman APD</h1>
+            <p>Sistem Manajemen Alat Pelindung Diri</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="form-container">
+            <form id="borrow-form">
+                <div class="form-group">
+                    <label for="nama-peminjam">Nama Peminjam</label>
+                    <input type="text" id="nama-peminjam" placeholder="Masukkan nama lengkap" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="identitas">Nomor Identitas (NIK/NIP)</label>
+                    <input type="text" id="identitas" placeholder="Masukkan nomor identitas" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="departemen">Departemen/Unit</label>
+                    <select id="departemen" required>
+                        <option value="">Pilih departemen/unit</option>
+                        <option value="medis">Medis</option>
+                        <option value="keperawatan">Keperawatan</option>
+                        <option value="laboratorium">Laboratorium</option>
+                        <option value="administrasi">Administrasi</option>
+                        <option value="lainnya">Lainnya</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tanggal-pinjam">Tanggal Peminjaman</label>
+                    <input type="date" id="tanggal-pinjam" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="apd-items">Jenis APD yang Dipinjam</label>
+                    <select id="apd-items" required>
+                        <option value="">Pilih jenis APD</option>
+                        <option value="masker">Masker N95</option>
+                        <option value="faceshield">Face Shield</option>
+                        <option value="gaun">Gaun Medis</option>
+                        <option value="sarung-tangan">Sarung Tangan Medis</option>
+                        <option value="goggles">Goggles Pelindung</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="jumlah">Jumlah</label>
+                    <input type="number" id="jumlah" min="1" placeholder="Masukkan jumlah" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="keterangan">Keterangan (Opsional)</label>
+                    <textarea id="keterangan" placeholder="Tambahkan keterangan jika diperlukan"></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="back-button" onclick="window.location.href='index.html'"><i class="fas fa-arrow-left"></i> Kembali</button>
+                    <button type="submit"><i class="fas fa-save"></i> Ajukan Peminjaman</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('borrow-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Form peminjaman APD berhasil diajukan!');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

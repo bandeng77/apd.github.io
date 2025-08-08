@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Pengembalian APD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        header {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        
+        .form-group input, 
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+        }
+        
+        button {
+            background-color: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-secondary {
+            background-color: #4b5563;
+            padding: 10px 15px;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #374151;
+        }
+        
+        button:hover {
+            background-color: #1e40af;
+        }
+        
+        .back-button {
+            background-color: #6b7280;
+            margin-right: 15px;
+        }
+        
+        .back-button:hover {
+            background-color: #4b5563;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-reply"></i> Form Pengembalian APD</h1>
+            <p>Sistem Manajemen Alat Pelindung Diri</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="form-container">
+            <form id="return-form">
+                <div class="form-group">
+                    <label for="select-loan">Pilih Peminjaman</label>
+                    <select id="select-loan" required>
+                        <option value="">-- Pilih Data Peminjaman --</option>
+                        <option value="loan1">[LOAN-001] John Doe - Masker N95 (5 pcs)</option>
+                        <option value="loan2">[LOAN-002] Jane Smith - Face Shield (2 pcs)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Foto Kondisi APD</label>
+                    <div id="camera-container" style="margin-bottom: 15px;">
+                        <video id="video" width="320" height="240" autoplay style="display: none;"></video>
+                        <canvas id="canvas" width="320" height="240" style="border:1px solid #ddd; display: none;"></canvas>
+                        <img id="photo-preview" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/35011346-5eef-477d-bad6-a3746048c4b2.png" alt="Preview Foto APD" style="border:1px solid #ddd;">
+                    </div>
+                    <div>
+                        <button type="button" id="capture-btn" class="btn-secondary" style="margin-right: 10px;">
+                            <i class="fas fa-camera"></i> Ambil Foto
+                        </button>
+                        <button type="button" id="retake-btn" class="btn-secondary" style="display: none;">
+                            <i class="fas fa-sync-alt"></i> Ulang Foto
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="kondisi">Kondisi Barang</label>
+                    <select id="kondisi" required>
+                        <option value="">Pilih kondisi barang</option>
+                        <option value="baik">Baik (Layak Pakai)</option>
+                        <option value="rusak-ringan">Rusak Ringan (Dapat Diperbaiki)</option>
+                        <option value="rusak-berat">Rusak Berat (Tidak Layak Pakai)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="catatan">Catatan Pengembalian (Opsional)</label>
+                    <textarea id="catatan" placeholder="Tambahkan catatan jika diperlukan"></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" class="back-button" onclick="window.location.href='index.html'"><i class="fas fa-arrow-left"></i> Kembali</button>
+                    <button type="submit"><i class="fas fa-check-circle"></i> Ajukan Pengembalian</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Camera functionality
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const photoPreview = document.getElementById('photo-preview');
+        const captureBtn = document.getElementById('capture-btn');
+        const retakeBtn = document.getElementById('retake-btn');
+        let stream = null;
+
+        // Start camera when page loads
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(mediaStream) {
+                    video.srcObject = mediaStream;
+                    stream = mediaStream;
+                    video.style.display = 'block';
+                })
+                .catch(function(err) {
+                    console.error("Camera error: ", err);
+                    alert('Tidak dapat mengakses kamera');
+                });
+        }
+
+        captureBtn.addEventListener('click', function() {
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            photoPreview.src = canvas.toDataURL('image/png');
+            photoPreview.style.display = 'block';
+            video.style.display = 'none';
+            canvas.style.display = 'none';
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'inline-block';
+        });
+
+        retakeBtn.addEventListener('click', function() {
+            photoPreview.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/5b949937-dc42-4693-bdeb-17659c2c3d46.png';
+            photoPreview.style.display = 'block';
+            video.style.display = 'block';
+            canvas.style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+            retakeBtn.style.display = 'none';
+        });
+
+        document.getElementById('return-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const selectedLoan = document.getElementById('select-loan').value;
+            if (!selectedLoan) {
+                alert('Silahkan pilih data peminjaman');
+                return;
+            }
+
+            if (photoPreview.src.includes('placehold')) {
+                alert('Silahkan ambil foto kondisi APD');
+                return;
+            }
+
+            alert('Form pengembalian APD berhasil diajukan!');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
