@@ -82,6 +82,15 @@
         .btn-secondary {
             background-color: #4b5563;
             padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+
+        #camera-container {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            text-align: center;
         }
         
         .btn-secondary:hover {
@@ -135,8 +144,9 @@
                     <label for="select-loan">Pilih Peminjaman</label>
                     <select id="select-loan" required>
                         <option value="">-- Pilih Data Peminjaman --</option>
-                        <option value="loan1">[LOAN-001] John Doe - Masker N95 (5 pcs)</option>
-                        <option value="loan2">[LOAN-002] Jane Smith - Face Shield (2 pcs)</option>
+                        <option value="loan1">[PJM-001] John Doe - Masker N95 (5 pcs) - Pinjam: 01/06/2023</option>
+                        <option value="loan2">[PJM-002] Jane Smith - Face Shield (2 pcs) - Pinjam: 03/06/2023</option>
+                        <option value="loan3">[PJM-003] Ahmad Yusuf - Sarung Tangan (10 pcs) - Pinjam: 05/06/2023</option>
                     </select>
                 </div>
 
@@ -231,9 +241,14 @@
                 return;
             }
 
-            if (photoPreview.src.includes('placehold')) {
-                alert('Silahkan ambil foto kondisi APD');
+            if (photoPreview.src.includes('placehold') || photoPreview.style.display === 'none') {
+                alert('Silahkan ambil foto kondisi APD terlebih dahulu');
                 return;
+            }
+
+            // Stop camera stream
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
             }
 
             alert('Form pengembalian APD berhasil diajukan!');
