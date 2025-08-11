@@ -128,6 +128,24 @@
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script>
+        // Konfigurasi Firebase Anda (harus sama dengan di index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSrUUuN4MkBxONR2NxiAAZr_oygy9p_3M",
+            authDomain: "apdefk-f66d8.firebaseapp.com",
+            projectId: "apdefk-f66d8",
+            storageBucket: "apdefk-f66d8.appspot.com",
+            messagingSenderId: "128363041389",
+            appId: "1:128363041389:web:d92c4fcb9e8e30883be564"
+        };
+        
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
 </head>
 <body>
     <header>
@@ -144,9 +162,7 @@
                     <label for="select-loan">Pilih Peminjaman</label>
                     <select id="select-loan" required>
                         <option value="">-- Pilih Data Peminjaman --</option>
-                        <option value="loan1">[PJM-001] John Doe - Masker N95 (5 pcs) - Pinjam: 01/06/2023</option>
-                        <option value="loan2">[PJM-002] Jane Smith - Face Shield (2 pcs) - Pinjam: 03/06/2023</option>
-                        <option value="loan3">[PJM-003] Ahmad Yusuf - Sarung Tangan (10 pcs) - Pinjam: 05/06/2023</option>
+                        <!-- Opsi akan diisi secara dinamis dari Firebase -->
                     </select>
                 </div>
 
@@ -155,6 +171,8 @@
                     <div id="camera-container" style="margin-bottom: 15px;">
                         <video id="video" width="320" height="240" autoplay style="display: none;"></video>
                         <canvas id="canvas" width="320" height="240" style="border:1px solid #ddd; display: none;"></canvas>
+                        <!-- Elemen img untuk preview foto -->
+                        <img id="photo-preview" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/35011346-5eef-477d-bad6-a3746048c4b2.png" alt="Preview Foto APD" style="border:1px solid #ddd; max-width: 100%; height: auto;">
                     </div>
                     <div>
                         <button type="button" id="capture-btn" class="btn-secondary" style="margin-right: 10px;">
@@ -193,66 +211,156 @@
         // Camera functionality
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        const photoPreview = document.getElementById('photo-preview');
+        const photoPreview = document.getElementById('photo-preview'); // Dapatkan elemen img
         const captureBtn = document.getElementById('capture-btn');
         const retakeBtn = document.getElementById('retake-btn');
         let stream = null;
 
-        // Start camera when page loads
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(mediaStream) {
-                    video.srcObject = mediaStream;
-                    stream = mediaStream;
-                    video.style.display = 'block';
-                })
-                .catch(function(err) {
-                    console.error("Camera error: ", err);
-                    alert('Tidak dapat mengakses kamera');
-                });
+        // Fungsi untuk memulai kamera
+        function startCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(mediaStream) {
+                        video.srcObject = mediaStream;
+                        stream = mediaStream;
+                        video.style.display = 'block'; // Tampilkan video
+                        photoPreview.style.display = 'none'; // Sembunyikan preview saat kamera aktif
+                        canvas.style.display = 'none'; // Sembunyikan canvas
+                        captureBtn.style.display = 'inline-block'; // Tampilkan tombol ambil foto
+                        retakeBtn.style.display = 'none'; // Sembunyikan tombol ulang foto
+                    })
+                    .catch(function(err) {
+                        console.error("Camera error: ", err);
+                        alert('Tidak dapat mengakses kamera. Pastikan Anda memberikan izin.');
+                        // Tampilkan placeholder jika kamera tidak bisa diakses
+                        video.style.display = 'none';
+                        photoPreview.style.display = 'block'; // Tampilkan placeholder
+                        captureBtn.style.display = 'none'; // Sembunyikan tombol ambil foto jika kamera tidak ada
+                    });
+            } else {
+                alert('Browser Anda tidak mendukung akses kamera.');
+                video.style.display = 'none';
+                photoPreview.style.display = 'block'; // Tampilkan placeholder
+                captureBtn.style.display = 'none';
+            }
         }
+
+        // Panggil startCamera saat halaman dimuat
+        window.addEventListener('load', startCamera);
 
         captureBtn.addEventListener('click', function() {
             canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            photoPreview.src = canvas.toDataURL('image/png');
-            photoPreview.style.display = 'block';
-            video.style.display = 'none';
-            canvas.style.display = 'none';
+            photoPreview.src = canvas.toDataURL('image/png'); // Set src img dengan foto yang diambil
+            photoPreview.style.display = 'block'; // Tampilkan preview foto
+            video.style.display = 'none'; // Sembunyikan video
+            canvas.style.display = 'none'; // Sembunyikan canvas
             captureBtn.style.display = 'none';
             retakeBtn.style.display = 'inline-block';
-        });
-
-        retakeBtn.addEventListener('click', function() {
-            photoPreview.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/5b949937-dc42-4693-bdeb-17659c2c3d46.png';
-            photoPreview.style.display = 'block';
-            video.style.display = 'block';
-            canvas.style.display = 'none';
-            captureBtn.style.display = 'inline-block';
-            retakeBtn.style.display = 'none';
-        });
-
-        document.getElementById('return-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const selectedLoan = document.getElementById('select-loan').value;
-            if (!selectedLoan) {
-                alert('Silahkan pilih data peminjaman');
-                return;
-            }
-
-            if (photoPreview.src.includes('placehold') || photoPreview.style.display === 'none') {
-                alert('Silahkan ambil foto kondisi APD terlebih dahulu');
-                return;
-            }
-
-            // Stop camera stream
+            // Hentikan stream kamera setelah foto diambil
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
-
-            alert('Form pengembalian APD berhasil diajukan!');
-            window.location.href = 'index.html';
         });
+
+        retakeBtn.addEventListener('click', function() {
+            // Reset preview ke placeholder atau kosongkan
+            photoPreview.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/35011346-5eef-477d-bad6-a3746048c4b2.png'; // Ganti dengan URL placeholder Anda
+            photoPreview.style.display = 'block'; // Pastikan placeholder terlihat
+            startCamera(); // Mulai ulang kamera
+        });
+
+        // --- Fungsi Firebase untuk Pengembalian ---
+
+        // Fungsi untuk mengambil data peminjaman dari Firestore
+        async function fetchBorrowingData() {
+            const selectLoan = document.getElementById('select-loan');
+            selectLoan.innerHTML = '<option value="">-- Pilih Data Peminjaman --</option>'; // Reset dropdown
+
+            try {
+                // Ambil hanya peminjaman yang statusnya 'borrowed' (belum dikembalikan)
+                const querySnapshot = await db.collection("borrowings").where("status", "==", "borrowed").get();
+                
+                if (querySnapshot.empty) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "Tidak ada data peminjaman yang aktif.";
+                    option.disabled = true;
+                    selectLoan.appendChild(option);
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const option = document.createElement('option');
+                    option.value = doc.id; // ID dokumen Firestore sebagai nilai
+                    option.textContent = `[${doc.id.substring(0, 6)}] ${data.borrowerName} - ${data.apdItem} (${data.quantity} pcs) - Pinjam: ${data.borrowDate}`;
+                    selectLoan.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching borrowing data: ", error);
+                alert("Gagal memuat data peminjaman. Periksa koneksi dan izin Firebase.");
+            }
+        }
+
+        // Fungsi untuk menyimpan data pengembalian ke Firestore
+        document.getElementById('return-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const selectedLoanId = document.getElementById('select-loan').value;
+            const kondisi = document.getElementById('kondisi').value;
+            const catatan = document.getElementById('catatan').value;
+            const returnDate = new Date().toISOString().split('T')[0]; // Tanggal pengembalian hari ini
+
+            if (!selectedLoanId) {
+                alert('Silahkan pilih data peminjaman terlebih dahulu.');
+                return;
+            }
+
+            // --- VALIDASI WAJIB AMBIL FOTO ---
+            // Periksa apakah src photoPreview masih placeholder atau display-nya none
+            const isPlaceholder = photoPreview.src.includes('35011346-5eef-477d-bad6-a3746048c4b2.png'); // Ganti dengan bagian unik dari URL placeholder Anda
+            if (photoPreview.style.display === 'none' || isPlaceholder) {
+                alert('Silahkan ambil foto kondisi APD terlebih dahulu.');
+                return; // Hentikan proses submit
+            }
+            // --- AKHIR VALIDASI ---
+
+            try {
+                // 1. Simpan data pengembalian ke koleksi 'returns'
+                await db.collection("returns").add({
+                    borrowingId: selectedLoanId, // Referensi ke ID peminjaman
+                    returnDate: returnDate,
+                    condition: kondisi,
+                    notes: catatan,
+                    photoUrl: photoPreview.src // Simpan URL foto yang diambil
+                });
+
+                // 2. Perbarui status peminjaman di koleksi 'borrowings'
+                // Set status peminjaman menjadi 'returned'
+                await db.collection("borrowings").doc(selectedLoanId).update({
+                    status: "returned",
+                    returnDate: returnDate, // Tambahkan tanggal pengembalian ke data peminjaman
+                    returnCondition: kondisi // Tambahkan kondisi pengembalian ke data peminjaman
+                });
+
+                alert('Form pengembalian APD berhasil diajukan!');
+                
+                // Hentikan stream kamera
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+
+                // Kembali ke halaman utama setelah sukses
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error("Error submitting return form: ", error);
+                alert("Terjadi kesalahan saat mengajukan pengembalian. Periksa koneksi dan izin Firebase.");
+            }
+        });
+
+        // Panggil fungsi untuk memuat data peminjaman saat halaman pengembalian dimuat
+        window.addEventListener('DOMContentLoaded', fetchBorrowingData);
     </script>
 </body>
 </html>
