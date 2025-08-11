@@ -278,6 +278,23 @@
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSrUUuN4MkBxONR2NxiAAZr_oygy9p_3M",
+            authDomain: "apdefk-f66d8.firebaseapp.com",
+            projectId: "apdefk-f66d8",
+            storageBucket: "apdefk-f66d8.appspot.com",
+            messagingSenderId: "128363041389",
+            appId: "1:128363041389:web:d92c4fcb9e8e30883be564"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
 </head>
 <body>
     <!-- Header Section -->
@@ -464,37 +481,74 @@
         
         // Form submission handlers
         document.getElementById('borrow-form').addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent default form submission
+            e.preventDefault();
             
-            // Get form data (for demonstration)
             const borrowerName = document.getElementById('nama-peminjam').value;
+            const identityNumber = document.getElementById('identitas').value;
+            const department = document.getElementById('departemen').value;
+            const borrowDate = document.getElementById('tanggal-pinjam').value;
             const apdItem = document.getElementById('apd-items').value;
             const quantity = document.getElementById('jumlah').value;
+            const notes = document.getElementById('keterangan').value;
 
-            // In a real application, you would send this data to a server
-            console.log('Peminjaman Data:', { borrowerName, apdItem, quantity });
-
-            // Display success message
-            alert(`Form peminjaman APD untuk ${apdItem} (${quantity} unit) oleh ${borrowerName} berhasil diajukan!`);
-            
-            // Optionally clear the form
-            this.reset(); 
-            
-            // Go back to main page
-            showPage('main-page');
+            // Save to Firestore
+            db.collection("borrowings").add({
+                borrowerName,
+                identityNumber,
+                department,
+                borrowDate,
+                apdItem,
+                quantity,
+                notes,
+                status: "borrowed"
+            })
+            .then(() => {
+                alert(`Peminjaman ${apdItem} (${quantity} unit) oleh ${borrowerName} berhasil!`);
+                this.reset();
+                showPage('main-page');
+            })
+            .catch(error => {
+                console.error("Error saving: ", error);
+                alert("Terjadi kesalahan saat menyimpan data.");
+            });
         });
         
         // Set default date for borrowing form to today
         window.onload = function() {
             const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months start at 0!
-            const dd = String(today.getDate()).padStart(2, '0');
-            const formattedDate = `${yyyy}-${mm}-${dd}`;
-
+            const formattedDate = today.toISOString().split('T')[0];
             document.getElementById('tanggal-pinjam').value = formattedDate;
-            // document.getElementById('tanggal-kembali').value = formattedDate; // Ini dihapus karena form pengembalian sudah di file terpisah
+            
+            // Load data for data display page
+            if (document.getElementById('data-page')) {
+                loadBorrowingData();
+            }
         };
+
+        function loadBorrowingData() {
+            db.collection("borrowings").get()
+                .then((querySnapshot) => {
+                    const tbody = document.querySelector('#data-page table tbody');
+                    tbody.innerHTML = ''; // Clear existing rows
+                    
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const row = `
+                            <tr>
+                                <td>${data.borrowerName}</td>
+                                <td>${data.department}</td>
+                                <td>${data.apdItem}</td>
+                                <td>${data.quantity}</td>
+                                <td>${data.borrowDate}</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error loading data: ", error);
+                });
+        }
     </script>
 </body>
 </html>
