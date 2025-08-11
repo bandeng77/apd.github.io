@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Peminjaman APD</title>
     <style>
+        /* Global Styles */
         * {
             margin: 0;
             padding: 0;
@@ -15,6 +16,7 @@
         body {
             background-color: #f5f5f5;
             color: #333;
+            line-height: 1.6;
         }
         
         .container {
@@ -23,6 +25,7 @@
             padding: 20px;
         }
         
+        /* Header Section */
         header {
             background-color: #1e3a8a;
             color: white;
@@ -30,18 +33,21 @@
             text-align: center;
             margin-bottom: 30px;
             border-bottom: 5px solid #1e40af;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Added shadow */
         }
         
         header h1 {
-            font-size: 2.2rem;
+            font-size: 2.5rem; /* Slightly larger font */
             margin-bottom: 10px;
+            letter-spacing: 1px;
         }
         
         header p {
-            font-size: 1rem;
+            font-size: 1.1rem; /* Slightly larger text */
             opacity: 0.9;
         }
         
+        /* Main Menu Section */
         .main-menu {
             display: flex;
             justify-content: center;
@@ -52,22 +58,23 @@
         
         .menu-card {
             background-color: white;
-            border-radius: 10px;
+            border-radius: 12px; /* Slightly more rounded */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             padding: 30px;
             width: 300px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            border: 1px solid #eee; /* Subtle border */
         }
         
         .menu-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-8px); /* More pronounced lift */
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
         }
         
         .menu-card i {
-            font-size: 3rem;
+            font-size: 3.5rem; /* Slightly larger icon */
             margin-bottom: 20px;
             color: #1e3a8a;
         }
@@ -75,26 +82,44 @@
         .menu-card h2 {
             margin-bottom: 15px;
             color: #1e3a8a;
+            font-size: 1.5rem;
         }
         
         .menu-card p {
             color: #666;
-            font-size: 0.9rem;
+            font-size: 1rem; /* Slightly larger text */
         }
         
+        /* Page Content Styles */
         .page {
             display: none;
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.6s ease-out; /* Slightly longer and smoother animation */
             background-color: white;
             padding: 30px;
-            border-radius: 10px;
+            border-radius: 12px; /* Consistent border-radius */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         
         .page.active {
             display: block;
         }
+
+        .page h2 {
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page .subtitle {
+            color: #555;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
         
+        /* Form Group Styles */
         .form-group {
             margin-bottom: 20px;
         }
@@ -104,6 +129,7 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #1e3a8a;
+            font-size: 1rem;
         }
         
         .form-group input, 
@@ -111,28 +137,44 @@
         .form-group textarea {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 1px solid #ccc; /* Lighter border */
+            border-radius: 8px; /* More rounded inputs */
             font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
+            outline: none;
         }
         
         .form-group textarea {
-            height: 100px;
+            height: 120px; /* Slightly taller textarea */
+            resize: vertical; /* Allow vertical resizing */
         }
         
+        /* Button Styles */
         button {
             background-color: #1e3a8a;
             color: white;
             border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
+            padding: 12px 28px; /* Slightly more padding */
+            border-radius: 8px; /* More rounded buttons */
             cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
+            font-size: 1.05rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         
         button:hover {
             background-color: #1e40af;
+            transform: translateY(-2px);
         }
         
         .back-button {
@@ -148,32 +190,39 @@
             display: flex;
             justify-content: flex-end;
             margin-top: 30px;
+            gap: 15px; /* Space between buttons */
         }
         
+        /* Table Styles (for future use, e.g., data display) */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden; /* Ensures rounded corners apply to table */
         }
         
         th, td {
-            padding: 12px 15px;
+            padding: 15px; /* More padding */
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #eee; /* Lighter border */
         }
         
         th {
-            background-color: #f3f4f6;
-            font-weight: 600;
+            background-color: #e0e7ff; /* Lighter blue background */
+            font-weight: 700;
             color: #1e3a8a;
+            text-transform: uppercase;
+            font-size: 0.9rem;
         }
         
         tr:hover {
-            background-color: #f9fafb;
+            background-color: #f0f4ff; /* Lighter hover effect */
         }
         
+        /* Keyframe Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); } /* More pronounced start */
             to { opacity: 1; transform: translateY(0); }
         }
         
@@ -186,12 +235,52 @@
             
             .menu-card {
                 width: 90%;
+                max-width: 350px; /* Limit card width on smaller screens */
+            }
+
+            .page {
+                padding: 20px;
+            }
+
+            .page h2 {
+                font-size: 1.7rem;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .button-group button {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            header p {
+                font-size: 1rem;
+            }
+            .menu-card {
+                padding: 25px;
+            }
+            .page h2 {
+                font-size: 1.5rem;
+            }
+            .form-group label, .form-group input, .form-group select, .form-group textarea, button {
+                font-size: 0.95rem;
             }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <!-- Header Section -->
     <header>
         <div class="container">
             <h1>Sistem Peminjaman APD</h1>
@@ -209,10 +298,18 @@
                     <p>Formulir untuk meminjam alat pelindung diri</p>
                 </div>
                 
-                <div class="menu-card" onclick="showPage('pengembalian-page')">
+                <!-- Mengarahkan ke pengembalian.html -->
+                <div class="menu-card" onclick="window.location.href='pengembalian.html'">
                     <i class="fas fa-reply"></i>
                     <h2>Pengembalian APD</h2>
                     <p>Formulir untuk mengembalikan alat pelindung diri</p>
+                </div>
+
+                <!-- Konseptual: Menu untuk melihat data -->
+                <div class="menu-card" onclick="showPage('data-page')">
+                    <i class="fas fa-list-alt"></i>
+                    <h2>Lihat Data</h2>
+                    <p>Lihat riwayat peminjaman dan pengembalian APD</p>
                 </div>
             </div>
         </div>
@@ -230,7 +327,10 @@
                 
                 <div class="form-group">
                     <label for="identitas">Nomor Identitas (NIK/NIP)</label>
-                    <input type="text" id="identitas" placeholder="Masukkan nomor identitas" required>
+                    <!-- Contoh validasi pattern untuk NIK 16 digit atau NIP 18 digit -->
+                    <input type="text" id="identitas" placeholder="Masukkan nomor identitas (misal: 1234567890123456)" 
+                           pattern="[0-9]{16}|[0-9]{18}" 
+                           title="NIK harus 16 digit angka atau NIP 18 digit angka" required>
                 </div>
                 
                 <div class="form-group">
@@ -241,6 +341,7 @@
                         <option value="keperawatan">Keperawatan</option>
                         <option value="laboratorium">Laboratorium</option>
                         <option value="administrasi">Administrasi</option>
+                        <option value="teknisi">Teknisi</option>
                         <option value="lainnya">Lainnya</option>
                     </select>
                 </div>
@@ -259,17 +360,19 @@
                         <option value="gaun">Gaun Medis</option>
                         <option value="sarung-tangan">Sarung Tangan Medis</option>
                         <option value="goggles">Goggles Pelindung</option>
+                        <option value="sepatu-boot">Sepatu Boot Pelindung</option>
+                        <option value="helm">Helm Keselamatan</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label for="jumlah">Jumlah</label>
-                    <input type="number" id="jumlah" min="1" placeholder="Masukkan jumlah" required>
+                    <input type="number" id="jumlah" min="1" value="1" placeholder="Masukkan jumlah" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="keterangan">Keterangan (Opsional)</label>
-                    <textarea id="keterangan" placeholder="Tambahkan keterangan jika diperlukan"></textarea>
+                    <textarea id="keterangan" placeholder="Tambahkan keterangan jika diperlukan, misal: untuk prosedur X"></textarea>
                 </div>
                 
                 <div class="button-group">
@@ -279,68 +382,73 @@
             </form>
         </div>
         
-        <!-- Return Page -->
-        <div id="pengembalian-page" class="page">
-            <h2><i class="fas fa-reply"></i> Form Pengembalian APD</h2>
-            <p class="subtitle">Silahkan isi formulir dibawah ini untuk mengembalikan APD</p>
+        <!-- Konseptual: Data Display Page -->
+        <div id="data-page" class="page">
+            <h2><i class="fas fa-list-alt"></i> Data Peminjaman & Pengembalian</h2>
+            <p class="subtitle">Berikut adalah riwayat peminjaman dan pengembalian APD.</p>
             
-            <form id="return-form">
-                <div class="form-group">
-                    <label for="nama-kembali">Nama Peminjam</label>
-                    <input type="text" id="nama-kembali" placeholder="Masukkan nama lengkap" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="kode-peminjaman">Kode Peminjaman</label>
-                    <input type="text" id="kode-peminjaman" placeholder="Masukkan kode peminjaman" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="tanggal-kembali">Tanggal Pengembalian</label>
-                    <input type="date" id="tanggal-kembali" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="apd-kembali">Jenis APD yang Dikembalikan</label>
-                    <select id="apd-kembali" required>
-                        <option value="">Pilih jenis APD</option>
-                        <option value="masker">Masker N95</option>
-                        <option value="faceshield">Face Shield</option>
-                        <option value="gaun">Gaun Medis</option>
-                        <option value="sarung-tangan">Sarung Tangan Medis</option>
-                        <option value="goggles">Goggles Pelindung</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="jumlah-kembali">Jumlah</label>
-                    <input type="number" id="jumlah-kembali" min="1" placeholder="Masukkan jumlah" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="kondisi">Kondisi Barang</label>
-                    <select id="kondisi" required>
-                        <option value="">Pilih kondisi barang</option>
-                        <option value="baik">Baik (Layak Pakai)</option>
-                        <option value="rusak-ringan">Rusak Ringan (Dapat Diperbaiki)</option>
-                        <option value="rusak-berat">Rusak Berat (Tidak Layak Pakai)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="catatan">Catatan Pengembalian (Opsional)</label>
-                    <textarea id="catatan" placeholder="Tambahkan catatan jika diperlukan"></textarea>
-                </div>
-                
-                <div class="button-group">
-                    <button type="button" class="back-button" onclick="showPage('main-page')"><i class="fas fa-arrow-left"></i> Kembali</button>
-                    <button type="submit"><i class="fas fa-check-circle"></i> Ajukan Pengembalian</button>
-                </div>
-            </form>
+            <!-- Ini adalah placeholder. Data sebenarnya akan dimuat dari backend atau JavaScript -->
+            <h3>Riwayat Peminjaman</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Peminjam</th>
+                        <th>Departemen</th>
+                        <th>APD</th>
+                        <th>Jumlah</th>
+                        <th>Tgl Pinjam</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Budi Santoso</td>
+                        <td>Medis</td>
+                        <td>Masker N95</td>
+                        <td>5</td>
+                        <td>2023-10-26</td>
+                    </tr>
+                    <tr>
+                        <td>Siti Aminah</td>
+                        <td>Laboratorium</td>
+                        <td>Sarung Tangan Medis</td>
+                        <td>10</td>
+                        <td>2023-10-25</td>
+                    </tr>
+                    <!-- Data akan ditambahkan secara dinamis di sini -->
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 40px;">Riwayat Pengembalian</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Peminjam</th>
+                        <th>APD</th>
+                        <th>Jumlah</th>
+                        <th>Kondisi</th>
+                        <th>Tgl Kembali</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Budi Santoso</td>
+                        <td>Masker N95</td>
+                        <td>5</td>
+                        <td>Baik</td>
+                        <td>2023-10-27</td>
+                    </tr>
+                    <!-- Data akan ditambahkan secara dinamis di sini -->
+                </tbody>
+            </table>
+
+            <div class="button-group">
+                <button type="button" class="back-button" onclick="showPage('main-page')"><i class="fas fa-arrow-left"></i> Kembali</button>
+            </div>
         </div>
     </div>
     
     <script>
+        // Function to show/hide pages
         function showPage(pageId) {
             // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
@@ -350,22 +458,43 @@
             // Show selected page
             document.getElementById(pageId).classList.add('active');
             
-            // Scroll to top
-            window.scrollTo(0, 0);
+            // Scroll to top for better UX
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
         // Form submission handlers
         document.getElementById('borrow-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Form peminjaman APD berhasil diajukan!');
+            e.preventDefault(); // Prevent default form submission
+            
+            // Get form data (for demonstration)
+            const borrowerName = document.getElementById('nama-peminjam').value;
+            const apdItem = document.getElementById('apd-items').value;
+            const quantity = document.getElementById('jumlah').value;
+
+            // In a real application, you would send this data to a server
+            console.log('Peminjaman Data:', { borrowerName, apdItem, quantity });
+
+            // Display success message
+            alert(`Form peminjaman APD untuk ${apdItem} (${quantity} unit) oleh ${borrowerName} berhasil diajukan!`);
+            
+            // Optionally clear the form
+            this.reset(); 
+            
+            // Go back to main page
             showPage('main-page');
         });
         
-        document.getElementById('return-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Form pengembalian APD berhasil diajukan!');
-            showPage('main-page');
-        });
+        // Set default date for borrowing form to today
+        window.onload = function() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months start at 0!
+            const dd = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${yyyy}-${mm}-${dd}`;
+
+            document.getElementById('tanggal-pinjam').value = formattedDate;
+            // document.getElementById('tanggal-kembali').value = formattedDate; // Ini dihapus karena form pengembalian sudah di file terpisah
+        };
     </script>
 </body>
 </html>
