@@ -125,6 +125,11 @@
             .form-container {
                 padding: 20px;
             }
+            /* Make video and canvas responsive */
+            #video, #canvas {
+                width: 100%;
+                height: auto;
+            }
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -169,9 +174,8 @@
                 <div class="form-group">
                     <label>Foto Kondisi APD</label>
                     <div id="camera-container" style="margin-bottom: 15px;">
-                        <video id="video" width="320" height="240" autoplay style="display: none;"></video>
+                        <video id="video" width="320" height="240" autoplay></video>
                         <canvas id="canvas" width="320" height="240" style="border:1px solid #ddd; display: none;"></canvas>
-                        <!-- Elemen img untuk preview foto -->
                     </div>
                     <div>
                         <button type="button" id="capture-btn" class="btn-secondary" style="margin-right: 10px;">
@@ -207,66 +211,114 @@
     </div>
     
     <script>
-        // Camera functionality
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const photoPreview = document.getElementById('photo-preview'); // Dapatkan elemen img
-        const captureBtn = document.getElementById('capture-btn');
-        const retakeBtn = document.getElementById('retake-btn');
-        let stream = null;
+// Camera functionality
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const captureBtn = document.getElementById('capture-btn');
+const retakeBtn = document.getElementById('retake-btn');
+let stream = null;
+let photoTaken = false; // Flag untuk menandakan apakah foto sudah diambil
 
-        // Fungsi untuk memulai kamera
-        function startCamera() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+// Fungsi untuk memulai kamera
+function startCamera() {
+    // Hentikan stream yang ada jika ada
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+
+    // Atur constraints untuk kamera belakang
+    const constraints = {
+        video: {
+            facingMode: { exact: "environment" } // Menggunakan kamera belakang
+        }
+    };
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(function(mediaStream) {
+                video.srcObject = mediaStream;
+                stream = mediaStream;
+                video.style.display = 'block'; // Tampilkan video
+                canvas.style.display = 'none'; // Sembunyikan canvas
+                captureBtn.style.display = 'inline-block'; // Tampilkan tombol ambil foto
+                retakeBtn.style.display = 'none'; // Sembunyikan tombol ulang foto
+                photoTaken = false; // Reset flag
+
+                // Penting: Tunggu hingga metadata video dimuat untuk mendapatkan dimensi asli
+                video.onloadedmetadata = () => {
+                    // Set canvas dimensions to match video's intrinsic dimensions
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    // Optional: Adjust video element size if needed, but CSS handles responsiveness
+                };
+
+            })
+            .catch(function(err) {
+                console.error("Camera error: ", err);
+                alert('Tidak dapat mengakses kamera belakang. Pastikan Anda memberikan izin atau coba dengan kamera depan jika tidak ada kamera belakang.');
+                // Coba dengan kamera depan jika kamera belakang gagal
                 navigator.mediaDevices.getUserMedia({ video: true })
                     .then(function(mediaStream) {
                         video.srcObject = mediaStream;
                         stream = mediaStream;
-                        video.style.display = 'block'; // Tampilkan video
-                        photoPreview.style.display = 'none'; // Sembunyikan preview saat kamera aktif
-                        canvas.style.display = 'none'; // Sembunyikan canvas
-                        captureBtn.style.display = 'inline-block'; // Tampilkan tombol ambil foto
-                        retakeBtn.style.display = 'none'; // Sembunyikan tombol ulang foto
+                        video.style.display = 'block';
+                        canvas.style.display = 'none';
+                        captureBtn.style.display = 'inline-block';
+                        retakeBtn.style.display = 'none';
+                        photoTaken = false;
+
+                        video.onloadedmetadata = () => {
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                        };
                     })
-                    .catch(function(err) {
-                        console.error("Camera error: ", err);
-                        alert('Tidak dapat mengakses kamera. Pastikan Anda memberikan izin.');
-                        // Tampilkan placeholder jika kamera tidak bisa diakses
-                        video.style.display = 'none';
-                        photoPreview.style.display = 'block'; // Tampilkan placeholder
-                        captureBtn.style.display = 'none'; // Sembunyikan tombol ambil foto jika kamera tidak ada
+                    .catch(function(errFront) {
+                        console.error("Front camera error: ", errFront);
+                        alert('Tidak dapat mengakses kamera sama sekali. Pastikan Anda memberikan izin.');
+                        video.style.display = 'none'; // Sembunyikan video jika kamera tidak bisa diakses
+                        captureBtn.style.display = 'none'; // Sembunyikan tombol ambil foto
                     });
-            } else {
-                alert('Browser Anda tidak mendukung akses kamera.');
-                video.style.display = 'none';
-                photoPreview.style.display = 'block'; // Tampilkan placeholder
-                captureBtn.style.display = 'none';
-            }
-        }
+            });
+    } else {
+        alert('Browser Anda tidak mendukung akses kamera.');
+        video.style.display = 'none';
+        captureBtn.style.display = 'none';
+    }
+}
 
-        // Panggil startCamera saat halaman dimuat
-        window.addEventListener('load', startCamera);
+// Panggil startCamera saat halaman dimuat
+window.addEventListener('load', startCamera);
 
-        captureBtn.addEventListener('click', function() {
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            photoPreview.src = canvas.toDataURL('image/png'); // Set src img dengan foto yang diambil
-            photoPreview.style.display = 'block'; // Tampilkan preview foto
-            video.style.display = 'none'; // Sembunyikan video
-            canvas.style.display = 'none'; // Sembunyikan canvas
-            captureBtn.style.display = 'none';
-            retakeBtn.style.display = 'inline-block';
-            // Hentikan stream kamera setelah foto diambil
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-        });
+captureBtn.addEventListener('click', function() {
+    const context = canvas.getContext('2d');
+    
+    // Pastikan canvas memiliki dimensi yang sama dengan video saat ini
+    // Ini sudah diatur di onloadedmetadata, tapi tidak ada salahnya memastikan lagi
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-        retakeBtn.addEventListener('click', function() {
-            // Reset preview ke placeholder atau kosongkan
-            photoPreview.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/35011346-5eef-477d-bad6-a3746048c4b2.png'; // Ganti dengan URL placeholder Anda
-            photoPreview.style.display = 'block'; // Pastikan placeholder terlihat
-            startCamera(); // Mulai ulang kamera
-        });
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    video.style.display = 'none'; // Sembunyikan video
+    canvas.style.display = 'block'; // Tampilkan canvas dengan foto
+    captureBtn.style.display = 'none';
+    retakeBtn.style.display = 'inline-block';
+    photoTaken = true; // Set flag foto sudah diambil
+
+    // Hentikan stream kamera setelah foto diambil
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+});
+
+retakeBtn.addEventListener('click', function() {
+    // Bersihkan canvas
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.style.display = 'none'; // Sembunyikan canvas
+    photoTaken = false; // Reset flag
+    startCamera(); // Mulai ulang kamera
+});
 
         // --- Fungsi Firebase untuk Pengembalian ---
 
@@ -316,9 +368,8 @@
             }
 
             // --- VALIDASI WAJIB AMBIL FOTO ---
-            // Periksa apakah src photoPreview masih placeholder atau display-nya none
-            const isPlaceholder = photoPreview.src.includes('35011346-5eef-477d-bad6-a3746048c4b2.png'); // Ganti dengan bagian unik dari URL placeholder Anda
-            if (photoPreview.style.display === 'none' || isPlaceholder) {
+            // Periksa apakah foto sudah diambil (photoTaken = true)
+            if (!photoTaken) {
                 alert('Silahkan ambil foto kondisi APD terlebih dahulu.');
                 return; // Hentikan proses submit
             }
@@ -331,7 +382,7 @@
                     returnDate: returnDate,
                     condition: kondisi,
                     notes: catatan,
-                    photoUrl: photoPreview.src // Simpan URL foto yang diambil
+                    photoUrl: canvas.toDataURL('image/png') // Simpan URL foto dari canvas
                 });
 
                 // 2. Perbarui status peminjaman di koleksi 'borrowings'
