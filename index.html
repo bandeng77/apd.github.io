@@ -366,14 +366,12 @@
     <!-- Add Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <!-- Firebase Storage SDK tidak lagi diperlukan jika foto disimpan sebagai Base64 -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script> -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCSrUUuN4MkBxONR2NxiAAZr_oygy9p_3M",
             authDomain: "apdefk-f66d8.firebaseapp.com",
             projectId: "apdefk-f66d8",
-            storageBucket: "apdefk-f66d8.appspot.com", // Ini tidak akan digunakan lagi untuk foto Base64
+            storageBucket: "apdefk-f66d8.appspot.com",
             messagingSenderId: "128363041389",
             appId: "1:128363041389:web:d92c4fcb9e8e30883be564"
         };
@@ -381,7 +379,6 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        // const storage = firebase.storage(); // Storage tidak lagi diperlukan
     </script>
 </head>
 <body>
@@ -510,7 +507,6 @@
             <h2><i class="fas fa-list-alt"></i> Data Peminjaman & Pengembalian</h2>
             <p class="subtitle">Berikut adalah riwayat peminjaman dan pengembalian APD.</p>
             
-            <!-- Ini adalah placeholder. Data sebenarnya akan dimuat dari backend atau JavaScript -->
             <h3>Riwayat Peminjaman</h3>
             <table>
                 <thead>
@@ -521,6 +517,7 @@
                         <th>Lokasi APD</th>
                         <th>APD</th>
                         <th>Tgl Pinjam</th>
+                        <th>Status</th>
                         <th>Foto</th>
                     </tr>
                 </thead>
@@ -535,19 +532,13 @@
                     <tr>
                         <th>Nama Peminjam</th>
                         <th>APD</th>
-                        <th>Jumlah</th>
                         <th>Kondisi</th>
                         <th>Tgl Kembali</th>
+                        <th>Catatan</th>
+                        <th>Foto</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>Budi Santoso</td>
-                        <td>Masker N95</td>
-                        <td>5</td>
-                        <td>Baik</td>
-                        <td>2023-10-27</td>
-                    </tr>
+                <tbody id="return-data-body">
                     <!-- Data akan ditambahkan secara dinamis di sini -->
                 </tbody>
             </table>
@@ -577,7 +568,8 @@
             if (pageId === 'peminjaman-page') {
                 startCamera();
             } else if (pageId === 'data-page') {
-                loadBorrowingData();
+                loadBorrowingData(); // Load borrowing data
+                loadReturnData();   // Load return data
             } else {
                 // Stop camera if navigating away from peminjaman-page
                 stopCamera();
@@ -786,20 +778,23 @@
                 showValidationError('Minimal satu jenis APD harus ditambahkan.');
                 isValid = false;
             } else {
-                apdItemEntries.forEach((entry, index) => {
+                for (let i = 0; i < apdItemEntries.length; i++) {
+                    const entry = apdItemEntries[i];
                     const apdSelect = entry.querySelector('.apd-item-select');
                     const quantityInput = entry.querySelector('.apd-quantity-input');
                     if (!apdSelect.value || apdSelect.value.trim() === '') {
-                        showValidationError(`Jenis APD pada baris ${index + 1} wajib dipilih.`);
+                        showValidationError(`Jenis APD pada baris ${i + 1} wajib dipilih.`);
                         apdSelect.focus();
                         isValid = false;
+                        break;
                     }
                     if (!quantityInput.value || parseInt(quantityInput.value) < 1) {
-                        showValidationError(`Jumlah APD pada baris ${index + 1} wajib diisi dan minimal 1.`);
+                        showValidationError(`Jumlah APD pada baris ${i + 1} wajib diisi dan minimal 1.`);
                         quantityInput.focus();
                         isValid = false;
+                        break;
                     }
-                });
+                }
             }
             
             if (!isValid) return;
@@ -838,7 +833,7 @@
                     apdItems, // Array of APD items
                     purposeOfVisit,
                     photoUrl: photoDataToSave, // Menyimpan Base64 langsung
-                    status: "borrowed",
+                    status: "borrowed", // Default status
                     timestamp: firebase.firestore.FieldValue.serverTimestamp() // Add timestamp
                 });
                 alert(`Peminjaman oleh ${borrowerName} berhasil diajukan!`);
@@ -860,6 +855,7 @@
             // Load data for data display page if it's the active page on load
             if (document.getElementById('data-page').classList.contains('active')) {
                 loadBorrowingData();
+                loadReturnData();
             }
         };
 
@@ -879,7 +875,8 @@
                                 <td>${data.department}</td>
                                 <td>${data.apdLocation}</td>
                                 <td>${apdList}</td>
-                                <td><a href="${data.borrowDate}" target="_blank">${data.borrowDate}</a></td>
+                                <td>${data.borrowDate}</td>
+                                <td>${data.status === 'borrowed' ? 'Dipinjam' : 'Dikembalikan'}</td>
                                 <td><a href="${data.photoUrl}" target="_blank">Lihat Foto</a></td>
                             </tr>
                         `;
@@ -887,8 +884,36 @@
                     });
                 })
                 .catch((error) => {
-                    console.error("Error loading data: ", error);
+                    console.error("Error loading borrowing data: ", error);
                     alert("Gagal memuat data peminjaman. Periksa konsol untuk detail.");
+                });
+        }
+
+        function loadReturnData() {
+            db.collection("returns").orderBy("returnDate", "desc").get()
+                .then((querySnapshot) => {
+                    const tbody = document.getElementById('return-data-body');
+                    tbody.innerHTML = ''; // Clear existing rows
+                    
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const apdList = data.apdItems.map(item => `${item.item} (${item.quantity})`).join(', ');
+                        const row = `
+                            <tr>
+                                <td>${data.borrowerName}</td>
+                                <td>${apdList}</td>
+                                <td>${data.condition}</td>
+                                <td>${data.returnDate}</td>
+                                <td>${data.notes || '-'}</td>
+                                <td><a href="${data.photoUrl}" target="_blank">Lihat Foto</a></td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error loading return data: ", error);
+                    alert("Gagal memuat data pengembalian. Periksa konsol untuk detail.");
                 });
         }
     </script>
