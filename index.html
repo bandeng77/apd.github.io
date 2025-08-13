@@ -725,11 +725,11 @@
         });
 
         // Initial check for remove button on first item
-        document.addEventListener('DOMContentLoaded', () => {
+        const initializeRemoveButtons = () => {
             if (document.querySelectorAll('.apd-item-entry').length === 1) {
                 document.querySelector('.apd-item-entry .remove-apd-item').style.display = 'none';
             }
-        });
+        };
 
         // Show validation error notification
         function showValidationError(message) {
@@ -903,7 +903,28 @@
             unsubscribeBorrowings = db.collection("borrowings")
                 .orderBy("timestamp", "desc")
                 .onSnapshot((querySnapshot) => {
-            db.collection("borrowings").orderBy("timestamp", "desc").get()
+                    const tbody = document.getElementById('borrowing-data-body');
+                    tbody.innerHTML = ''; // Clear existing rows
+                    
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const apdList = data.apdItems.map(item => `${item.item} (${item.quantity})`).join(', ');
+                        const row = `
+                            <tr>
+                                <td>${data.borrowerName}</td>
+                                <td>${data.phoneNumber}</td> 
+                                <td>${data.department}</td>
+                                <td>${data.apdLocation}</td>
+                                <td>${apdList}</td>
+                                <td>${data.borrowDate}</td>
+                                <td><a href="${data.photoUrl}" target="_blank">Lihat Foto</a></td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                }, (error) => {
+                    console.error("Error loading data:", error);
+                });
                 .then((querySnapshot) => {
                     const tbody = document.getElementById('borrowing-data-body');
                     tbody.innerHTML = ''; // Clear existing rows
@@ -925,10 +946,21 @@
                         tbody.innerHTML += row;
                     });
                 })
-                .catch((error) => {
-                    console.error("Error loading data: ", error);
-                });
-        }
+                }
+    }
+
+        // Initialize page on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('tanggal-pinjam').value = formattedDate;
+            
+            // Load data for data display page if it's the active page on load
+            if (document.getElementById('data-page').classList.contains('active')) {
+                loadBorrowingData();
+                loadReturnData();
+            }
+        });
     </script>
 </body>
 </html>
