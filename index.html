@@ -278,14 +278,30 @@
         }
 
         /* Camera styles */
-        #camera-feed, #photo-canvas, #photo-preview {
+        #camera-feed {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            aspect-ratio: 4/3; /* Standard camera ratio */
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: block;
+            object-fit: cover;
+        }
+        
+        #photo-preview {
             width: 100%;
             max-width: 400px;
             height: auto;
             border: 1px solid #ccc;
             border-radius: 8px;
             margin-bottom: 15px;
-            display: block;
+            display: none;
+        }
+        
+        #photo-canvas {
+            display: none;
         }
 
         #photo-preview {
@@ -630,7 +646,8 @@
             const context = photoCanvas.getContext('2d');
             context.drawImage(video, 0, 0, width, height);
             
-            photoCanvas.toDataURL('image/png', 0.8).then(dataUrl => {
+            const dataUrl = photoCanvas.toDataURL('image/png', 0.8);
+            try {
                 photoPreview.src = dataUrl;
                 photoPreview.style.display = 'block';
                 video.style.display = 'none';
@@ -639,10 +656,10 @@
                 submitBorrowFormButton.disabled = false;
                 photoRequiredMessage.style.display = 'none';
                 stopCamera();
-            }).catch(error => {
+            } catch (error) {
                 console.error("Error converting canvas to data URL:", error);
                 showValidationError("Gagal mengambil foto.");
-            });
+            }
         });
 
         function stopCamera() {
@@ -716,6 +733,10 @@
 
         // Show validation error notification
         function showValidationError(message) {
+            // Remove any existing notifications first
+            const existing = document.querySelector('.validation-notification');
+            if (existing) document.body.removeChild(existing);
+            
             const notification = document.createElement('div');
             notification.className = 'validation-notification';
             notification.innerHTML = `
@@ -724,15 +745,18 @@
             `;
             document.body.appendChild(notification);
             
+            // Make visible
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            // Auto-hide after 3 seconds
             setTimeout(() => {
-                notification.classList.add('show');
+                notification.classList.remove('show');
                 setTimeout(() => {
-                    notification.classList.remove('show');
-                    setTimeout(() => {
+                    if (document.body.contains(notification)) {
                         document.body.removeChild(notification);
-                    }, 500);
-                }, 3000);
-            }, 100);
+                    }
+                }, 500);
+            }, 3000);
         }
 
         // Form submission handlers
