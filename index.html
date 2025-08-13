@@ -448,8 +448,7 @@
                     <label>Ambil Foto Peminjam</label>
                     <video id="camera-feed" autoplay playsinline></video>
                     <div class="camera-controls">
-                        <button type="button" id="start-camera"><i class="fas fa-video"></i> Mulai Kamera</button>
-                        <button type="button" id="take-photo" disabled><i class="fas fa-camera"></i> Ambil Foto</button>
+                        <button type="button" id="take-photo"><i class="fas fa-camera"></i> Ambil Foto</button>
                     </div>
                     <canvas id="photo-canvas" style="display:none;"></canvas>
                     <img id="photo-preview" src="#" alt="Pratinjau Foto">
@@ -532,9 +531,9 @@
             // Show selected page
             document.getElementById(pageId).classList.add('active');
             
-            // If navigating to peminjaman-page, reset camera and photo status
+            // If navigating to peminjaman-page, start camera automatically
             if (pageId === 'peminjaman-page') {
-                resetCameraAndPhoto();
+                startCamera();
             } else if (pageId === 'data-page') {
                 loadBorrowingData();
             }
@@ -545,7 +544,6 @@
 
         // Camera functionality
         const video = document.getElementById('camera-feed');
-        const startCameraButton = document.getElementById('start-camera');
         const takePhotoButton = document.getElementById('take-photo');
         const photoCanvas = document.getElementById('photo-canvas');
         const photoPreview = document.getElementById('photo-preview');
@@ -553,28 +551,45 @@
         const submitBorrowFormButton = document.getElementById('submit-borrow-form');
         const photoRequiredMessage = document.getElementById('photo-required-message');
 
-        startCameraButton.addEventListener('click', async () => {
+        async function startCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Request front camera
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
                 video.style.display = 'block';
                 photoPreview.style.display = 'none';
                 takePhotoButton.disabled = false;
-                startCameraButton.textContent = 'Kamera Aktif';
-                startCameraButton.disabled = true;
                 photoTaken = false; // Reset photo status
                 photoUrlInput.value = ''; // Clear previous photo URL
                 submitBorrowFormButton.disabled = true; // Disable submit until photo is taken
                 photoRequiredMessage.style.display = 'block'; // Show message
             } catch (err) {
                 console.error("Error accessing camera: ", err);
-                alert("Tidak dapat mengakses kamera. Pastikan Anda memberikan izin.");
+                alert("Tidak dapat mengakses kamera depan. Pastikan Anda memberikan izin atau coba dengan kamera belakang jika tidak ada kamera depan.");
+                // Fallback to any available camera if front camera fails
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    photoPreview.style.display = 'none';
+                    takePhotoButton.disabled = false;
+                    photoTaken = false;
+                    photoUrlInput.value = '';
+                    submitBorrowFormButton.disabled = true;
+                    photoRequiredMessage.style.display = 'block';
+                } catch (errAny) {
+                    console.error("Error accessing any camera: ", errAny);
+                    alert("Tidak dapat mengakses kamera sama sekali. Pastikan Anda memberikan izin.");
+                    video.style.display = 'none';
+                    takePhotoButton.disabled = true;
+                    photoRequiredMessage.style.display = 'block';
+                }
             }
-        });
+        }
 
         takePhotoButton.addEventListener('click', () => {
             if (!stream) {
-                alert("Mulai kamera terlebih dahulu!");
+                alert("Kamera belum aktif. Silakan coba lagi.");
                 return;
             }
             const context = photoCanvas.getContext('2d');
@@ -601,9 +616,7 @@
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
-                startCameraButton.textContent = 'Mulai Kamera';
-                startCameraButton.disabled = false;
-                takePhotoButton.disabled = true;
+                takePhotoButton.disabled = true; // Disable take photo button when camera is stopped
             }
         }
 
