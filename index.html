@@ -278,24 +278,23 @@
         }
 
         /* Camera styles */
-        #camera-feed {
+        #camera-feed, #photo-canvas, #photo-preview {
             width: 100%;
             max-width: 400px;
             height: auto;
             border: 1px solid #ccc;
             border-radius: 8px;
             margin-bottom: 15px;
-            display: block; /* Ensure it takes up space */
+            display: block;
         }
 
         #photo-preview {
-            width: 100%;
-            max-width: 400px;
-            height: auto;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            display: none;
             margin-top: 15px;
-            display: none; /* Hidden by default */
+        }
+
+        #photo-canvas {
+            display: none;
         }
 
         .camera-controls {
@@ -319,6 +318,32 @@
         .apd-item-entry button {
             padding: 8px 12px;
             font-size: 0.9rem;
+        }
+
+        .validation-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #f44336;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 1000;
+        }
+
+        .validation-notification.show {
+            opacity: 1;
+        }
+
+        .validation-notification i {
+            font-size: 1.2rem;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -589,26 +614,34 @@
 
         takePhotoButton.addEventListener('click', () => {
             if (!stream) {
-                alert("Kamera belum aktif. Silakan coba lagi.");
+                showValidationError("Kamera belum aktif. Silakan coba lagi.");
                 return;
             }
+            
+            // Calculate aspect ratio and set canvas dimensions
+            const videoAspectRatio = video.videoWidth / video.videoHeight;
+            const maxWidth = 400; // Match max-width from CSS
+            const width = Math.min(video.videoWidth, maxWidth);
+            const height = width / videoAspectRatio;
+            
+            photoCanvas.width = width;
+            photoCanvas.height = height;
+            
             const context = photoCanvas.getContext('2d');
-            photoCanvas.width = video.videoWidth;
-            photoCanvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, photoCanvas.width, photoCanvas.height);
+            context.drawImage(video, 0, 0, width, height);
             
             photoCanvas.toDataURL('image/png', 0.8).then(dataUrl => {
                 photoPreview.src = dataUrl;
                 photoPreview.style.display = 'block';
                 video.style.display = 'none';
-                photoUrlInput.value = dataUrl; // Store data URL
+                photoUrlInput.value = dataUrl;
                 photoTaken = true;
-                submitBorrowFormButton.disabled = false; // Enable submit after photo is taken
-                photoRequiredMessage.style.display = 'none'; // Hide message
-                stopCamera(); // Stop camera after taking photo
+                submitBorrowFormButton.disabled = false;
+                photoRequiredMessage.style.display = 'none';
+                stopCamera();
             }).catch(error => {
                 console.error("Error converting canvas to data URL:", error);
-                alert("Gagal mengambil foto.");
+                showValidationError("Gagal mengambil foto.");
             });
         });
 
@@ -681,12 +714,58 @@
             }
         });
 
+        // Show validation error notification
+        function showValidationError(message) {
+            const notification = document.createElement('div');
+            notification.className = 'validation-notification';
+            notification.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 500);
+                }, 3000);
+            }, 100);
+        }
+
         // Form submission handlers
         document.getElementById('borrow-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            // Validate all required fields
+            const requiredFields = [
+                {id: 'nama-peminjam', message: 'Nama peminjam wajib diisi'},
+                {id: 'nomor-hp', message: 'Nomor handphone wajib diisi'},
+                {id: 'departemen', message: 'Departemen/unit wajib dipilih'},
+                {id: 'lokasi-apd', message: 'Lokasi APD wajib diisi'},
+                {id: 'tanggal-pinjam', message: 'Tanggal peminjaman wajib diisi'},
+                {id: 'apd-item-0', message: 'Jenis APD wajib dipilih'},
+                {id: 'jumlah-0', message: 'Jumlah APD wajib diisi'}
+            ];
+            
+            let isValid = true;
+            
+            for (const field of requiredFields) {
+                const element = document.getElementById(field.id);
+                if (!element.value || element.value.trim() === '') {
+                    showValidationError(field.message);
+                    element.focus();
+                    isValid = false;
+                    break;
+                }
+            }
+            
+            if (!isValid) return;
+            
             if (!photoTaken) {
-                alert("Anda harus mengambil foto sebelum mengajukan peminjaman!");
+                showValidationError("Anda harus mengambil foto sebelum mengajukan peminjaman!");
                 return;
             }
 
