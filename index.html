@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Sistem Peminjaman APD</title>
     <style>
         /* Global Styles */
@@ -406,7 +403,7 @@
                 </div>
                 
                 <!-- Mengarahkan ke pengembalian.html -->
-                <div class="menu-card" onclick="showReturnPage()">
+                <div class="menu-card" onclick="window.location.href='pengembalian.html'">
                     <i class="fas fa-reply"></i>
                     <h2>Pengembalian APD</h2>
                     <p>Formulir untuk mengembalikan alat pelindung diri</p>
@@ -544,7 +541,11 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <!-- Data akan ditambahkan secara dinamis di sini -->
+                        <td>Budi Santoso</td>
+                        <td>Masker N95</td>
+                        <td>5</td>
+                        <td>Baik</td>
+                        <td>2023-10-27</td>
                     </tr>
                     <!-- Data akan ditambahkan secara dinamis di sini -->
                 </tbody>
@@ -576,7 +577,6 @@
                 startCamera();
             } else if (pageId === 'data-page') {
                 loadBorrowingData();
-            loadReturnData();
             }
             
             // Scroll to top for better UX
@@ -725,11 +725,11 @@
         });
 
         // Initial check for remove button on first item
-        const initializeRemoveButtons = () => {
+        document.addEventListener('DOMContentLoaded', () => {
             if (document.querySelectorAll('.apd-item-entry').length === 1) {
                 document.querySelector('.apd-item-entry .remove-apd-item').style.display = 'none';
             }
-        };
+        });
 
         // Show validation error notification
         function showValidationError(message) {
@@ -757,10 +757,6 @@
                     }
                 }, 500);
             }, 3000);
-        }
-
-        function showReturnPage() {
-            window.location.href = 'pengembalian.html';
         }
 
         // Form submission handlers
@@ -840,8 +836,7 @@
                 apdItems, // Array of APD items
                 purposeOfVisit,
                 photoUrl: photoDownloadUrl,
-                status: "borrowed", 
-                returnDate: "",
+                status: "borrowed",
                 timestamp: firebase.firestore.FieldValue.serverTimestamp() // Add timestamp
             })
             .then(() => {
@@ -868,63 +863,8 @@
             }
         };
 
-        function loadReturnData() {
-            const returnTableBody = document.querySelector('#data-page table:nth-of-type(2) tbody');
-            returnTableBody.innerHTML = '';
-
-            db.collection("returns").orderBy("returnDate", "desc").get()
-                .then((querySnapshot) => {
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const row = `
-                            <tr>
-                                <td>${data.borrowerName}</td>
-                                <td>${data.apdItems.map(i => i.item).join(', ')}</td>
-                                <td>${data.apdItems.reduce((sum, item) => sum + parseInt(item.quantity), 0)}</td>
-                                <td>${data.condition}</td>
-                                <td>${data.returnDate}</td>
-                            </tr>
-                        `;
-                        returnTableBody.innerHTML += row;
-                    });
-                })
-                .catch((error) => {
-                    console.error("Error loading return data:", error);
-                });
-        }
-
-        let unsubscribeBorrowings;
-        let unsubscribeReturns;
-
         function loadBorrowingData() {
-            // Clean up previous listener if exists
-            if (unsubscribeBorrowings) unsubscribeBorrowings();
-            
-            unsubscribeBorrowings = db.collection("borrowings")
-                .orderBy("timestamp", "desc")
-                .onSnapshot((querySnapshot) => {
-                    const tbody = document.getElementById('borrowing-data-body');
-                    tbody.innerHTML = ''; // Clear existing rows
-                    
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const apdList = data.apdItems.map(item => `${item.item} (${item.quantity})`).join(', ');
-                        const row = `
-                            <tr>
-                                <td>${data.borrowerName}</td>
-                                <td>${data.phoneNumber}</td> 
-                                <td>${data.department}</td>
-                                <td>${data.apdLocation}</td>
-                                <td>${apdList}</td>
-                                <td>${data.borrowDate}</td>
-                                <td><a href="${data.photoUrl}" target="_blank">Lihat Foto</a></td>
-                            </tr>
-                        `;
-                        tbody.innerHTML += row;
-                    });
-                }, (error) => {
-                    console.error("Error loading data:", error);
-                });
+            db.collection("borrowings").orderBy("timestamp", "desc").get()
                 .then((querySnapshot) => {
                     const tbody = document.getElementById('borrowing-data-body');
                     tbody.innerHTML = ''; // Clear existing rows
@@ -946,21 +886,10 @@
                         tbody.innerHTML += row;
                     });
                 })
-                }
-    }
-
-        // Initialize page on load
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date();
-            const formattedDate = today.toISOString().split('T')[0];
-            document.getElementById('tanggal-pinjam').value = formattedDate;
-            
-            // Load data for data display page if it's the active page on load
-            if (document.getElementById('data-page').classList.contains('active')) {
-                loadBorrowingData();
-                loadReturnData();
-            }
-        });
+                .catch((error) => {
+                    console.error("Error loading data: ", error);
+                });
+        }
     </script>
 </body>
 </html>
