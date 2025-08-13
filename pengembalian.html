@@ -142,7 +142,7 @@
             apiKey: "AIzaSyCSrUUuN4MkBxONR2NxiAAZr_oygy9p_3M",
             authDomain: "apdefk-f66d8.firebaseapp.com",
             projectId: "apdefk-f66d8",
-            storageBucket: "apdefk-f66d8.appspot.com",
+            storageBucket: "apdefk-f66d8.appspot.com", // Tidak digunakan untuk foto, tapi biarkan saja
             messagingSenderId: "128363041389",
             appId: "1:128363041389:web:d92c4fcb9e8e30883be564"
         };
@@ -218,71 +218,50 @@ const captureBtn = document.getElementById('capture-btn');
 const retakeBtn = document.getElementById('retake-btn');
 let stream = null;
 let photoTaken = false; // Flag untuk menandakan apakah foto sudah diambil
+let capturedPhotoBase64 = ''; // Variable to store the Base64 string
 
 // Fungsi untuk memulai kamera
-function startCamera() {
+async function startCamera() {
     // Hentikan stream yang ada jika ada
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
     }
 
-    // Atur constraints untuk kamera belakang
-    const constraints = {
-        video: {
-            facingMode: { exact: "environment" } // Menggunakan kamera belakang
+    video.style.display = 'block'; // Tampilkan video
+    canvas.style.display = 'none'; // Sembunyikan canvas
+    captureBtn.style.display = 'inline-block'; // Tampilkan tombol ambil foto
+    retakeBtn.style.display = 'none'; // Sembunyikan tombol ulang foto
+    photoTaken = false; // Reset flag
+    capturedPhotoBase64 = ''; // Reset captured photo Base64
+
+    // Prioritas: Coba kamera belakang (environment)
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            // Set canvas dimensions to match video's intrinsic dimensions for capture
+            // We will reduce resolution during drawImage for compression
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+        };
+        return; // Berhasil mendapatkan kamera belakang, keluar dari fungsi
+    } catch (err) {
+        console.warn("Failed to get environment camera, trying user camera:", err);
+        // Jika kamera belakang gagal, coba kamera depan (user)
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            };
+            return; // Berhasil mendapatkan kamera depan, keluar dari fungsi
+        } catch (errFront) {
+            console.error("Error accessing any camera: ", errFront);
+            alert('Tidak dapat mengakses kamera sama sekali. Pastikan Anda memberikan izin.');
+            video.style.display = 'none'; // Sembunyikan video jika kamera tidak bisa diakses
+            captureBtn.style.display = 'none'; // Sembunyikan tombol ambil foto
         }
-    };
-
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then(function(mediaStream) {
-                video.srcObject = mediaStream;
-                stream = mediaStream;
-                video.style.display = 'block'; // Tampilkan video
-                canvas.style.display = 'none'; // Sembunyikan canvas
-                captureBtn.style.display = 'inline-block'; // Tampilkan tombol ambil foto
-                retakeBtn.style.display = 'none'; // Sembunyikan tombol ulang foto
-                photoTaken = false; // Reset flag
-
-                // Penting: Tunggu hingga metadata video dimuat untuk mendapatkan dimensi asli
-                video.onloadedmetadata = () => {
-                    // Set canvas dimensions to match video's intrinsic dimensions
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    // Optional: Adjust video element size if needed, but CSS handles responsiveness
-                };
-
-            })
-            .catch(function(err) {
-                console.error("Camera error: ", err);
-                alert('Tidak dapat mengakses kamera belakang. Pastikan Anda memberikan izin atau coba dengan kamera depan jika tidak ada kamera belakang.');
-                // Coba dengan kamera depan jika kamera belakang gagal
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function(mediaStream) {
-                        video.srcObject = mediaStream;
-                        stream = mediaStream;
-                        video.style.display = 'block';
-                        canvas.style.display = 'none';
-                        captureBtn.style.display = 'inline-block';
-                        retakeBtn.style.display = 'none';
-                        photoTaken = false;
-
-                        video.onloadedmetadata = () => {
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
-                        };
-                    })
-                    .catch(function(errFront) {
-                        console.error("Front camera error: ", errFront);
-                        alert('Tidak dapat mengakses kamera sama sekali. Pastikan Anda memberikan izin.');
-                        video.style.display = 'none'; // Sembunyikan video jika kamera tidak bisa diakses
-                        captureBtn.style.display = 'none'; // Sembunyikan tombol ambil foto
-                    });
-            });
-    } else {
-        alert('Browser Anda tidak mendukung akses kamera.');
-        video.style.display = 'none';
-        captureBtn.style.display = 'none';
     }
 }
 
@@ -292,13 +271,24 @@ window.addEventListener('load', startCamera);
 captureBtn.addEventListener('click', function() {
     const context = canvas.getContext('2d');
     
-    // Pastikan canvas memiliki dimensi yang sama dengan video saat ini
-    // Ini sudah diatur di onloadedmetadata, tapi tidak ada salahnya memastikan lagi
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Tentukan ukuran target untuk kompresi (misal, 30% dari lebar asli video)
+    // Atau bisa juga menggunakan ukuran tetap yang lebih kecil, misal max 640px lebar
+    const targetWidth = Math.min(video.videoWidth, 640); // Max width 640px
+    const targetHeight = (video.videoHeight / video.videoWidth) * targetWidth;
 
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    // Gambar video ke canvas dengan ukuran yang lebih kecil
+    context.drawImage(video, 0, 0, targetWidth, targetHeight);
     
+    // Konversi ke Base64 dengan kualitas rendah (0.3 = 30%)
+    // Menggunakan 'image/jpeg' karena umumnya lebih kecil untuk foto daripada 'image/png'
+    capturedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.3); 
+    
+    // Cek ukuran Base64 (opsional, untuk debugging)
+    console.log("Captured photo Base64 size:", (capturedPhotoBase64.length * 0.75 / 1024).toFixed(2) + " KB");
+
     video.style.display = 'none'; // Sembunyikan video
     canvas.style.display = 'block'; // Tampilkan canvas dengan foto
     captureBtn.style.display = 'none';
@@ -317,6 +307,7 @@ retakeBtn.addEventListener('click', function() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     canvas.style.display = 'none'; // Sembunyikan canvas
     photoTaken = false; // Reset flag
+    capturedPhotoBase64 = ''; // Reset Base64 string
     startCamera(); // Mulai ulang kamera
 });
 
@@ -371,7 +362,7 @@ retakeBtn.addEventListener('click', function() {
 
             // --- VALIDASI WAJIB AMBIL FOTO ---
             // Periksa apakah foto sudah diambil (photoTaken = true)
-            if (!photoTaken) {
+            if (!photoTaken || !capturedPhotoBase64) {
                 alert('Silahkan ambil foto kondisi APD terlebih dahulu.');
                 return; // Hentikan proses submit
             }
@@ -394,7 +385,7 @@ retakeBtn.addEventListener('click', function() {
                     returnDate: returnDate,
                     condition: kondisi,
                     notes: catatan,
-                    photoUrl: canvas.toDataURL('image/png') // Simpan URL foto dari canvas
+                    photoUrl: capturedPhotoBase64 // Simpan Base64 yang sudah dikompresi
                 });
 
                 // 2. Perbarui status peminjaman di koleksi 'borrowings'
@@ -417,7 +408,12 @@ retakeBtn.addEventListener('click', function() {
 
             } catch (error) {
                 console.error("Error submitting return form: ", error);
-                alert("Terjadi kesalahan saat mengajukan pengembalian. Periksa koneksi dan izin Firebase.");
+                // Tambahkan pesan spesifik jika error terkait ukuran data
+                if (error.code === 'resource-exhausted' || error.message.includes('longer than')) {
+                    alert("Gagal mengajukan pengembalian: Ukuran foto terlalu besar. Mohon coba ambil foto dengan resolusi lebih rendah atau dari jarak yang lebih jauh.");
+                } else {
+                    alert("Terjadi kesalahan saat mengajukan pengembalian. Periksa koneksi dan izin Firebase.");
+                }
             }
         });
 
