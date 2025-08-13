@@ -342,9 +342,11 @@ retakeBtn.addEventListener('click', function() {
 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
+                    const apdList = data.apdItems.map(item => `${item.item} (${item.quantity} pcs)`).join(', ');
                     const option = document.createElement('option');
                     option.value = doc.id; // ID dokumen Firestore sebagai nilai
-                    option.textContent = `[${doc.id.substring(0, 6)}] ${data.borrowerName} - ${data.apdItem} (${data.quantity} pcs) - Pinjam: ${data.borrowDate}`;
+                    // Keterangan yang lebih detail
+                    option.textContent = `${data.borrowerName} - ${data.department} - APD: ${apdList} - Pinjam: ${data.borrowDate}`;
                     selectLoan.appendChild(option);
                 });
             } catch (error) {
@@ -376,9 +378,19 @@ retakeBtn.addEventListener('click', function() {
             // --- AKHIR VALIDASI ---
 
             try {
+                // Ambil data peminjaman yang terkait untuk disimpan di koleksi 'returns'
+                const borrowingDoc = await db.collection("borrowings").doc(selectedLoanId).get();
+                if (!borrowingDoc.exists) {
+                    alert("Data peminjaman tidak ditemukan.");
+                    return;
+                }
+                const borrowingData = borrowingDoc.data();
+
                 // 1. Simpan data pengembalian ke koleksi 'returns'
                 await db.collection("returns").add({
                     borrowingId: selectedLoanId, // Referensi ke ID peminjaman
+                    borrowerName: borrowingData.borrowerName, // Tambahkan nama peminjam
+                    apdItems: borrowingData.apdItems, // Tambahkan detail APD
                     returnDate: returnDate,
                     condition: kondisi,
                     notes: catatan,
