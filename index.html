@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Sistem Peminjaman APD</title>
     <style>
         /* Global Styles */
@@ -403,7 +406,7 @@
                 </div>
                 
                 <!-- Mengarahkan ke pengembalian.html -->
-                <div class="menu-card" onclick="window.location.href='pengembalian.html'">
+                <div class="menu-card" onclick="showReturnPage()">
                     <i class="fas fa-reply"></i>
                     <h2>Pengembalian APD</h2>
                     <p>Formulir untuk mengembalikan alat pelindung diri</p>
@@ -541,11 +544,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Budi Santoso</td>
-                        <td>Masker N95</td>
-                        <td>5</td>
-                        <td>Baik</td>
-                        <td>2023-10-27</td>
+                        <!-- Data akan ditambahkan secara dinamis di sini -->
                     </tr>
                     <!-- Data akan ditambahkan secara dinamis di sini -->
                 </tbody>
@@ -577,6 +576,7 @@
                 startCamera();
             } else if (pageId === 'data-page') {
                 loadBorrowingData();
+            loadReturnData();
             }
             
             // Scroll to top for better UX
@@ -759,6 +759,10 @@
             }, 3000);
         }
 
+        function showReturnPage() {
+            window.location.href = 'pengembalian.html';
+        }
+
         // Form submission handlers
         document.getElementById('borrow-form').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -836,7 +840,8 @@
                 apdItems, // Array of APD items
                 purposeOfVisit,
                 photoUrl: photoDownloadUrl,
-                status: "borrowed",
+                status: "borrowed", 
+                returnDate: "",
                 timestamp: firebase.firestore.FieldValue.serverTimestamp() // Add timestamp
             })
             .then(() => {
@@ -863,7 +868,41 @@
             }
         };
 
+        function loadReturnData() {
+            const returnTableBody = document.querySelector('#data-page table:nth-of-type(2) tbody');
+            returnTableBody.innerHTML = '';
+
+            db.collection("returns").orderBy("returnDate", "desc").get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const row = `
+                            <tr>
+                                <td>${data.borrowerName}</td>
+                                <td>${data.apdItems.map(i => i.item).join(', ')}</td>
+                                <td>${data.apdItems.reduce((sum, item) => sum + parseInt(item.quantity), 0)}</td>
+                                <td>${data.condition}</td>
+                                <td>${data.returnDate}</td>
+                            </tr>
+                        `;
+                        returnTableBody.innerHTML += row;
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error loading return data:", error);
+                });
+        }
+
+        let unsubscribeBorrowings;
+        let unsubscribeReturns;
+
         function loadBorrowingData() {
+            // Clean up previous listener if exists
+            if (unsubscribeBorrowings) unsubscribeBorrowings();
+            
+            unsubscribeBorrowings = db.collection("borrowings")
+                .orderBy("timestamp", "desc")
+                .onSnapshot((querySnapshot) => {
             db.collection("borrowings").orderBy("timestamp", "desc").get()
                 .then((querySnapshot) => {
                     const tbody = document.getElementById('borrowing-data-body');
