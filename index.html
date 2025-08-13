@@ -361,6 +361,58 @@
         .validation-notification i {
             font-size: 1.2rem;
         }
+
+        /* MODAL STYLES */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1001; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-content, #caption {
+            animation-name: zoom;
+            animation-duration: 0.6s;
+        }
+
+        @keyframes zoom {
+            from {transform:scale(0)} 
+            to {transform:scale(1)}
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .close-modal:hover,
+        .close-modal:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Add Firebase SDK -->
@@ -548,6 +600,12 @@
             </div>
         </div>
     </div>
+
+    <!-- The Modal -->
+    <div id="imageModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
     
     <script>
         // Global variables for camera
@@ -624,9 +682,9 @@
             
             // Calculate aspect ratio and set canvas dimensions
             const videoAspectRatio = video.videoWidth / video.videoHeight;
-            const maxWidth = 400; // Match max-width from CSS
+            const maxWidth = 640; // Max width for captured image
             const width = Math.min(video.videoWidth, maxWidth);
-            const height = width / videoAspectRatio;
+            const height = (video.videoHeight / video.videoWidth) * width;
             
             photoCanvas.width = width;
             photoCanvas.height = height;
@@ -634,7 +692,12 @@
             const context = photoCanvas.getContext('2d');
             context.drawImage(video, 0, 0, width, height);
             
-            const dataUrl = photoCanvas.toDataURL('image/png', 0.8); // Kualitas 0.8 untuk mengurangi ukuran file
+            // Reduce quality to 30% and use JPEG for smaller file size
+            const dataUrl = photoCanvas.toDataURL('image/jpeg', 0.3); 
+            
+            // Log size for debugging
+            console.log("Captured photo Base64 size:", (dataUrl.length * 0.75 / 1024).toFixed(2) + " KB");
+
             try {
                 photoPreview.src = dataUrl;
                 photoPreview.style.display = 'block';
@@ -842,7 +905,12 @@
                 showPage('main-page');
             } catch (error) {
                 console.error("Error saving: ", error);
-                alert("Terjadi kesalahan saat menyimpan data. Silakan coba lagi.");
+                // Tambahkan pesan spesifik jika error terkait ukuran data
+                if (error.code === 'resource-exhausted' || error.message.includes('longer than')) {
+                    alert("Gagal mengajukan peminjaman: Ukuran foto terlalu besar. Mohon coba ambil foto dengan resolusi lebih rendah atau dari jarak yang lebih jauh.");
+                } else {
+                    alert("Terjadi kesalahan saat menyimpan data. Silakan coba lagi.");
+                }
             }
         });
         
@@ -877,7 +945,7 @@
                                 <td>${apdList}</td>
                                 <td>${data.borrowDate}</td>
                                 <td>${data.status === 'borrowed' ? 'Dipinjam' : 'Dikembalikan'}</td>
-                                <td><a href="${data.photoUrl}" target="_blank">Lihat Foto</a></td>
+                                <td><a href="#" onclick="openImageModal('${data.photoUrl}')">Lihat Foto</a></td>
                             </tr>
                         `;
                         tbody.innerHTML += row;
@@ -905,7 +973,7 @@
                                 <td>${data.condition}</td>
                                 <td>${data.returnDate}</td>
                                 <td>${data.notes || '-'}</td>
-                                <td><a href="${data.photoUrl}" target="_blank">Lihat Foto</a></td>
+                                <td><a href="#" onclick="openImageModal('${data.photoUrl}')">Lihat Foto</a></td>
                             </tr>
                         `;
                         tbody.innerHTML += row;
@@ -915,6 +983,27 @@
                     console.error("Error loading return data: ", error);
                     alert("Gagal memuat data pengembalian. Periksa konsol untuk detail.");
                 });
+        }
+
+        // MODAL JAVASCRIPT
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeModal = document.getElementsByClassName('close-modal')[0];
+
+        function openImageModal(imageUrl) {
+            imageModal.style.display = 'flex'; // Use flex to center content
+            modalImage.src = imageUrl;
+        }
+
+        closeModal.onclick = function() { 
+            imageModal.style.display = "none";
+        }
+
+        // Close modal when clicking outside the image
+        imageModal.onclick = function(event) {
+            if (event.target === imageModal) {
+                imageModal.style.display = "none";
+            }
         }
     </script>
 </body>
