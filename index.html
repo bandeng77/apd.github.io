@@ -366,13 +366,14 @@
     <!-- Add Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+    <!-- Firebase Storage SDK tidak lagi diperlukan jika foto disimpan sebagai Base64 -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script> -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCSrUUuN4MkBxONR2NxiAAZr_oygy9p_3M",
             authDomain: "apdefk-f66d8.firebaseapp.com",
             projectId: "apdefk-f66d8",
-            storageBucket: "apdefk-f66d8.appspot.com",
+            storageBucket: "apdefk-f66d8.appspot.com", // Ini tidak akan digunakan lagi untuk foto Base64
             messagingSenderId: "128363041389",
             appId: "1:128363041389:web:d92c4fcb9e8e30883be564"
         };
@@ -380,7 +381,7 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const storage = firebase.storage();
+        // const storage = firebase.storage(); // Storage tidak lagi diperlukan
     </script>
 </head>
 <body>
@@ -577,6 +578,9 @@
                 startCamera();
             } else if (pageId === 'data-page') {
                 loadBorrowingData();
+            } else {
+                // Stop camera if navigating away from peminjaman-page
+                stopCamera();
             }
             
             // Scroll to top for better UX
@@ -593,17 +597,14 @@
         const photoRequiredMessage = document.getElementById('photo-required-message');
 
         async function startCamera() {
+            // Reset photo status and UI elements when starting camera
+            resetCameraAndPhoto(); 
             try {
                 // Request front camera
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
                 video.style.display = 'block';
-                photoPreview.style.display = 'none';
                 takePhotoButton.disabled = false;
-                photoTaken = false; // Reset photo status
-                photoUrlInput.value = ''; // Clear previous photo URL
-                submitBorrowFormButton.disabled = true; // Disable submit until photo is taken
-                photoRequiredMessage.style.display = 'block'; // Show message
             } catch (err) {
                 console.error("Error accessing camera: ", err);
                 alert("Tidak dapat mengakses kamera depan. Pastikan Anda memberikan izin atau coba dengan kamera belakang jika tidak ada kamera depan.");
@@ -612,12 +613,7 @@
                     stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     video.srcObject = stream;
                     video.style.display = 'block';
-                    photoPreview.style.display = 'none';
                     takePhotoButton.disabled = false;
-                    photoTaken = false;
-                    photoUrlInput.value = '';
-                    submitBorrowFormButton.disabled = true;
-                    photoRequiredMessage.style.display = 'block';
                 } catch (errAny) {
                     console.error("Error accessing any camera: ", errAny);
                     alert("Tidak dapat mengakses kamera sama sekali. Pastikan Anda memberikan izin.");
@@ -646,7 +642,7 @@
             const context = photoCanvas.getContext('2d');
             context.drawImage(video, 0, 0, width, height);
             
-            const dataUrl = photoCanvas.toDataURL('image/png', 0.8);
+            const dataUrl = photoCanvas.toDataURL('image/png', 0.8); // Kualitas 0.8 untuk mengurangi ukuran file
             try {
                 photoPreview.src = dataUrl;
                 photoPreview.style.display = 'block';
@@ -655,7 +651,7 @@
                 photoTaken = true;
                 submitBorrowFormButton.disabled = false;
                 photoRequiredMessage.style.display = 'none';
-                stopCamera();
+                stopCamera(); // Hentikan kamera setelah foto diambil
             } catch (error) {
                 console.error("Error converting canvas to data URL:", error);
                 showValidationError("Gagal mengambil foto.");
@@ -710,7 +706,7 @@
             apdItemCount++;
 
             // Show remove button for the first item if more than one item exists
-            if (apdItemCount > 1) {
+            if (document.querySelectorAll('.apd-item-entry').length > 1) {
                 document.querySelector('.apd-item-entry .remove-apd-item').style.display = 'inline-flex';
             }
 
@@ -769,9 +765,7 @@
                 {id: 'nomor-hp', message: 'Nomor handphone wajib diisi'},
                 {id: 'departemen', message: 'Departemen/unit wajib dipilih'},
                 {id: 'lokasi-apd', message: 'Lokasi APD wajib diisi'},
-                {id: 'tanggal-pinjam', message: 'Tanggal peminjaman wajib diisi'},
-                {id: 'apd-item-0', message: 'Jenis APD wajib dipilih'},
-                {id: 'jumlah-0', message: 'Jumlah APD wajib diisi'}
+                {id: 'tanggal-pinjam', message: 'Tanggal peminjaman wajib diisi'}
             ];
             
             let isValid = true;
@@ -784,6 +778,28 @@
                     isValid = false;
                     break;
                 }
+            }
+
+            // Validate APD items
+            const apdItemEntries = document.querySelectorAll('.apd-item-entry');
+            if (apdItemEntries.length === 0) {
+                showValidationError('Minimal satu jenis APD harus ditambahkan.');
+                isValid = false;
+            } else {
+                apdItemEntries.forEach((entry, index) => {
+                    const apdSelect = entry.querySelector('.apd-item-select');
+                    const quantityInput = entry.querySelector('.apd-quantity-input');
+                    if (!apdSelect.value || apdSelect.value.trim() === '') {
+                        showValidationError(`Jenis APD pada baris ${index + 1} wajib dipilih.`);
+                        apdSelect.focus();
+                        isValid = false;
+                    }
+                    if (!quantityInput.value || parseInt(quantityInput.value) < 1) {
+                        showValidationError(`Jumlah APD pada baris ${index + 1} wajib diisi dan minimal 1.`);
+                        quantityInput.focus();
+                        isValid = false;
+                    }
+                });
             }
             
             if (!isValid) return;
@@ -808,47 +824,31 @@
                 apdItems.push({ item, quantity: parseInt(quantity) });
             });
 
-            // Upload photo to Firebase Storage
-            let photoDownloadUrl = '';
-            if (photoDataUrl) {
-                try {
-                    const storageRef = storage.ref();
-                    const photoName = `borrower_photos/${Date.now()}_${borrowerName.replace(/\s/g, '_')}.png`;
-                    const photoRef = storageRef.child(photoName);
-                    
-                    const uploadTask = await photoRef.putString(photoDataUrl, 'data_url');
-                    photoDownloadUrl = await uploadTask.ref.getDownloadURL();
-                    console.log("Photo uploaded:", photoDownloadUrl);
-                } catch (error) {
-                    console.error("Error uploading photo: ", error);
-                    alert("Terjadi kesalahan saat mengunggah foto. Peminjaman tidak dapat diajukan.");
-                    return;
-                }
-            }
+            // Foto akan disimpan langsung sebagai Base64 di Firestore
+            const photoDataToSave = photoDataUrl; 
 
             // Save to Firestore
-            db.collection("borrowings").add({
-                borrowerName,
-                phoneNumber,
-                department,
-                apdLocation,
-                borrowDate,
-                apdItems, // Array of APD items
-                purposeOfVisit,
-                photoUrl: photoDownloadUrl,
-                status: "borrowed",
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Add timestamp
-            })
-            .then(() => {
+            try {
+                await db.collection("borrowings").add({
+                    borrowerName,
+                    phoneNumber,
+                    department,
+                    apdLocation,
+                    borrowDate,
+                    apdItems, // Array of APD items
+                    purposeOfVisit,
+                    photoUrl: photoDataToSave, // Menyimpan Base64 langsung
+                    status: "borrowed",
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() // Add timestamp
+                });
                 alert(`Peminjaman oleh ${borrowerName} berhasil diajukan!`);
                 this.reset();
                 resetCameraAndPhoto(); // Reset camera and photo after successful submission
                 showPage('main-page');
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error("Error saving: ", error);
-                alert("Terjadi kesalahan saat menyimpan data.");
-            });
+                alert("Terjadi kesalahan saat menyimpan data. Silakan coba lagi.");
+            }
         });
         
         // Set default date for borrowing form to today
@@ -879,7 +879,7 @@
                                 <td>${data.department}</td>
                                 <td>${data.apdLocation}</td>
                                 <td>${apdList}</td>
-                                <td>${data.borrowDate}</td>
+                                <td><a href="${data.borrowDate}" target="_blank">${data.borrowDate}</a></td>
                                 <td><a href="${data.photoUrl}" target="_blank">Lihat Foto</a></td>
                             </tr>
                         `;
@@ -888,6 +888,7 @@
                 })
                 .catch((error) => {
                     console.error("Error loading data: ", error);
+                    alert("Gagal memuat data peminjaman. Periksa konsol untuk detail.");
                 });
         }
     </script>
