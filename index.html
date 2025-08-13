@@ -276,11 +276,56 @@
                 font-size: 0.95rem;
             }
         }
+
+        /* Camera styles */
+        #camera-feed {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: block; /* Ensure it takes up space */
+        }
+
+        #photo-preview {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none; /* Hidden by default */
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .apd-item-entry {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: flex-end;
+        }
+
+        .apd-item-entry .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .apd-item-entry button {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Add Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCSrUUuN4MkBxONR2NxiAAZr_oygy9p_3M",
@@ -294,6 +339,7 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const storage = firebase.storage();
     </script>
 </head>
 <body>
@@ -343,11 +389,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="identitas">Nomor Identitas (NIK/NIP)</label>
-                    <!-- Contoh validasi pattern untuk NIK 16 digit atau NIP 18 digit -->
-                    <input type="text" id="identitas" placeholder="Masukkan nomor identitas (misal: 1234567890123456)" 
-                           pattern="[0-9]{16}|[0-9]{18}" 
-                           title="NIK harus 16 digit angka atau NIP 18 digit angka" required>
+                    <label for="nomor-hp">Nomor Handphone</label>
+                    <input type="tel" id="nomor-hp" placeholder="Masukkan nomor handphone" pattern="[0-9]{10,15}" title="Nomor handphone harus angka, 10-15 digit" required>
                 </div>
                 
                 <div class="form-group">
@@ -362,39 +405,61 @@
                         <option value="lainnya">Lainnya</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="lokasi-apd">Lokasi APD</label>
+                    <input type="text" id="lokasi-apd" placeholder="Masukkan lokasi APD (misal: Gudang A, Rak 3)" required>
+                </div>
                 
                 <div class="form-group">
                     <label for="tanggal-pinjam">Tanggal Peminjaman</label>
                     <input type="date" id="tanggal-pinjam" required>
                 </div>
                 
-                <div class="form-group">
-                    <label for="apd-items">Jenis APD yang Dipinjam</label>
-                    <select id="apd-items" required>
-                        <option value="">Pilih jenis APD</option>
-                        <option value="masker">Masker N95</option>
-                        <option value="faceshield">Face Shield</option>
-                        <option value="gaun">Gaun Medis</option>
-                        <option value="sarung-tangan">Sarung Tangan Medis</option>
-                        <option value="goggles">Goggles Pelindung</option>
-                        <option value="sepatu-boot">Sepatu Boot Pelindung</option>
-                        <option value="helm">Helm Keselamatan</option>
-                    </select>
+                <div id="apd-items-container">
+                    <div class="apd-item-entry">
+                        <div class="form-group">
+                            <label for="apd-item-0">Jenis APD yang Dipinjam</label>
+                            <select class="apd-item-select" id="apd-item-0" required>
+                                <option value="">Pilih jenis APD</option>
+                                <option value="helm">Helm</option>
+                                <option value="sepatu-safety">Sepatu Safety</option>
+                                <option value="rompi">Rompi</option>
+                                <option value="kacamata-safety">Kacamata Safety</option>
+                                <option value="sarung-tangan">Sarung Tangan</option>
+                                <option value="full-body-harness">Full Body Harness</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="width: 100px;">
+                            <label for="jumlah-0">Jumlah</label>
+                            <input type="number" class="apd-quantity-input" id="jumlah-0" min="1" value="1" required>
+                        </div>
+                        <button type="button" class="remove-apd-item" style="display:none;"><i class="fas fa-minus-circle"></i></button>
+                    </div>
                 </div>
+                <button type="button" id="add-apd-item" style="margin-bottom: 20px;"><i class="fas fa-plus-circle"></i> Tambah APD Lain</button>
                 
                 <div class="form-group">
-                    <label for="jumlah">Jumlah</label>
-                    <input type="number" id="jumlah" min="1" value="1" placeholder="Masukkan jumlah" required>
+                    <label for="tujuan-kunjungan">Tujuan Kunjungan</label>
+                    <textarea id="tujuan-kunjungan" placeholder="Jelaskan tujuan kunjungan atau penggunaan APD"></textarea>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="keterangan">Keterangan (Opsional)</label>
-                    <textarea id="keterangan" placeholder="Tambahkan keterangan jika diperlukan, misal: untuk prosedur X"></textarea>
+                    <label>Ambil Foto Peminjam</label>
+                    <video id="camera-feed" autoplay playsinline></video>
+                    <div class="camera-controls">
+                        <button type="button" id="start-camera"><i class="fas fa-video"></i> Mulai Kamera</button>
+                        <button type="button" id="take-photo" disabled><i class="fas fa-camera"></i> Ambil Foto</button>
+                    </div>
+                    <canvas id="photo-canvas" style="display:none;"></canvas>
+                    <img id="photo-preview" src="#" alt="Pratinjau Foto">
+                    <input type="hidden" id="photo-url" required>
+                    <p style="font-size: 0.9em; color: red; margin-top: 5px;" id="photo-required-message">Foto wajib diambil sebelum mengajukan peminjaman.</p>
                 </div>
                 
                 <div class="button-group">
                     <button type="button" class="back-button" onclick="showPage('main-page')"><i class="fas fa-arrow-left"></i> Kembali</button>
-                    <button type="submit"><i class="fas fa-save"></i> Ajukan Peminjaman</button>
+                    <button type="submit" id="submit-borrow-form" disabled><i class="fas fa-save"></i> Ajukan Peminjaman</button>
                 </div>
             </form>
         </div>
@@ -410,27 +475,15 @@
                 <thead>
                     <tr>
                         <th>Nama Peminjam</th>
+                        <th>No. HP</th>
                         <th>Departemen</th>
+                        <th>Lokasi APD</th>
                         <th>APD</th>
-                        <th>Jumlah</th>
                         <th>Tgl Pinjam</th>
+                        <th>Foto</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>Budi Santoso</td>
-                        <td>Medis</td>
-                        <td>Masker N95</td>
-                        <td>5</td>
-                        <td>2023-10-26</td>
-                    </tr>
-                    <tr>
-                        <td>Siti Aminah</td>
-                        <td>Laboratorium</td>
-                        <td>Sarung Tangan Medis</td>
-                        <td>10</td>
-                        <td>2023-10-25</td>
-                    </tr>
+                <tbody id="borrowing-data-body">
                     <!-- Data akan ditambahkan secara dinamis di sini -->
                 </tbody>
             </table>
@@ -465,6 +518,10 @@
     </div>
     
     <script>
+        // Global variables for camera
+        let stream;
+        let photoTaken = false;
+
         // Function to show/hide pages
         function showPage(pageId) {
             // Hide all pages
@@ -475,36 +532,201 @@
             // Show selected page
             document.getElementById(pageId).classList.add('active');
             
+            // If navigating to peminjaman-page, reset camera and photo status
+            if (pageId === 'peminjaman-page') {
+                resetCameraAndPhoto();
+            } else if (pageId === 'data-page') {
+                loadBorrowingData();
+            }
+            
             // Scroll to top for better UX
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Camera functionality
+        const video = document.getElementById('camera-feed');
+        const startCameraButton = document.getElementById('start-camera');
+        const takePhotoButton = document.getElementById('take-photo');
+        const photoCanvas = document.getElementById('photo-canvas');
+        const photoPreview = document.getElementById('photo-preview');
+        const photoUrlInput = document.getElementById('photo-url');
+        const submitBorrowFormButton = document.getElementById('submit-borrow-form');
+        const photoRequiredMessage = document.getElementById('photo-required-message');
+
+        startCameraButton.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.style.display = 'block';
+                photoPreview.style.display = 'none';
+                takePhotoButton.disabled = false;
+                startCameraButton.textContent = 'Kamera Aktif';
+                startCameraButton.disabled = true;
+                photoTaken = false; // Reset photo status
+                photoUrlInput.value = ''; // Clear previous photo URL
+                submitBorrowFormButton.disabled = true; // Disable submit until photo is taken
+                photoRequiredMessage.style.display = 'block'; // Show message
+            } catch (err) {
+                console.error("Error accessing camera: ", err);
+                alert("Tidak dapat mengakses kamera. Pastikan Anda memberikan izin.");
+            }
+        });
+
+        takePhotoButton.addEventListener('click', () => {
+            if (!stream) {
+                alert("Mulai kamera terlebih dahulu!");
+                return;
+            }
+            const context = photoCanvas.getContext('2d');
+            photoCanvas.width = video.videoWidth;
+            photoCanvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, photoCanvas.width, photoCanvas.height);
+            
+            photoCanvas.toDataURL('image/png', 0.8).then(dataUrl => {
+                photoPreview.src = dataUrl;
+                photoPreview.style.display = 'block';
+                video.style.display = 'none';
+                photoUrlInput.value = dataUrl; // Store data URL
+                photoTaken = true;
+                submitBorrowFormButton.disabled = false; // Enable submit after photo is taken
+                photoRequiredMessage.style.display = 'none'; // Hide message
+                stopCamera(); // Stop camera after taking photo
+            }).catch(error => {
+                console.error("Error converting canvas to data URL:", error);
+                alert("Gagal mengambil foto.");
+            });
+        });
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                startCameraButton.textContent = 'Mulai Kamera';
+                startCameraButton.disabled = false;
+                takePhotoButton.disabled = true;
+            }
+        }
+
+        function resetCameraAndPhoto() {
+            stopCamera();
+            video.style.display = 'none';
+            photoPreview.style.display = 'none';
+            photoPreview.src = '#';
+            photoUrlInput.value = '';
+            photoTaken = false;
+            submitBorrowFormButton.disabled = true;
+            photoRequiredMessage.style.display = 'block';
+        }
         
+        // Add/Remove APD Items
+        let apdItemCount = 1;
+        document.getElementById('add-apd-item').addEventListener('click', () => {
+            const container = document.getElementById('apd-items-container');
+            const newEntry = document.createElement('div');
+            newEntry.classList.add('apd-item-entry');
+            newEntry.innerHTML = `
+                <div class="form-group">
+                    <label for="apd-item-${apdItemCount}">Jenis APD yang Dipinjam</label>
+                    <select class="apd-item-select" id="apd-item-${apdItemCount}" required>
+                        <option value="">Pilih jenis APD</option>
+                        <option value="helm">Helm</option>
+                        <option value="sepatu-safety">Sepatu Safety</option>
+                        <option value="rompi">Rompi</option>
+                        <option value="kacamata-safety">Kacamata Safety</option>
+                        <option value="sarung-tangan">Sarung Tangan</option>
+                        <option value="full-body-harness">Full Body Harness</option>
+                    </select>
+                </div>
+                <div class="form-group" style="width: 100px;">
+                    <label for="jumlah-${apdItemCount}">Jumlah</label>
+                    <input type="number" class="apd-quantity-input" id="jumlah-${apdItemCount}" min="1" value="1" required>
+                </div>
+                <button type="button" class="remove-apd-item"><i class="fas fa-minus-circle"></i></button>
+            `;
+            container.appendChild(newEntry);
+            apdItemCount++;
+
+            // Show remove button for the first item if more than one item exists
+            if (apdItemCount > 1) {
+                document.querySelector('.apd-item-entry .remove-apd-item').style.display = 'inline-flex';
+            }
+
+            // Add event listener for the new remove button
+            newEntry.querySelector('.remove-apd-item').addEventListener('click', (event) => {
+                event.target.closest('.apd-item-entry').remove();
+                // Hide remove button for the first item if only one item remains
+                if (document.querySelectorAll('.apd-item-entry').length === 1) {
+                    document.querySelector('.apd-item-entry .remove-apd-item').style.display = 'none';
+                }
+            });
+        });
+
+        // Initial check for remove button on first item
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.querySelectorAll('.apd-item-entry').length === 1) {
+                document.querySelector('.apd-item-entry .remove-apd-item').style.display = 'none';
+            }
+        });
+
         // Form submission handlers
-        document.getElementById('borrow-form').addEventListener('submit', function(e) {
+        document.getElementById('borrow-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!photoTaken) {
+                alert("Anda harus mengambil foto sebelum mengajukan peminjaman!");
+                return;
+            }
+
             const borrowerName = document.getElementById('nama-peminjam').value;
-            const identityNumber = document.getElementById('identitas').value;
+            const phoneNumber = document.getElementById('nomor-hp').value;
             const department = document.getElementById('departemen').value;
+            const apdLocation = document.getElementById('lokasi-apd').value;
             const borrowDate = document.getElementById('tanggal-pinjam').value;
-            const apdItem = document.getElementById('apd-items').value;
-            const quantity = document.getElementById('jumlah').value;
-            const notes = document.getElementById('keterangan').value;
+            const purposeOfVisit = document.getElementById('tujuan-kunjungan').value;
+            const photoDataUrl = document.getElementById('photo-url').value;
+
+            const apdItems = [];
+            document.querySelectorAll('.apd-item-entry').forEach(entry => {
+                const item = entry.querySelector('.apd-item-select').value;
+                const quantity = entry.querySelector('.apd-quantity-input').value;
+                apdItems.push({ item, quantity: parseInt(quantity) });
+            });
+
+            // Upload photo to Firebase Storage
+            let photoDownloadUrl = '';
+            if (photoDataUrl) {
+                try {
+                    const storageRef = storage.ref();
+                    const photoName = `borrower_photos/${Date.now()}_${borrowerName.replace(/\s/g, '_')}.png`;
+                    const photoRef = storageRef.child(photoName);
+                    
+                    const uploadTask = await photoRef.putString(photoDataUrl, 'data_url');
+                    photoDownloadUrl = await uploadTask.ref.getDownloadURL();
+                    console.log("Photo uploaded:", photoDownloadUrl);
+                } catch (error) {
+                    console.error("Error uploading photo: ", error);
+                    alert("Terjadi kesalahan saat mengunggah foto. Peminjaman tidak dapat diajukan.");
+                    return;
+                }
+            }
 
             // Save to Firestore
             db.collection("borrowings").add({
                 borrowerName,
-                identityNumber,
+                phoneNumber,
                 department,
+                apdLocation,
                 borrowDate,
-                apdItem,
-                quantity,
-                notes,
-                status: "borrowed"
+                apdItems, // Array of APD items
+                purposeOfVisit,
+                photoUrl: photoDownloadUrl,
+                status: "borrowed",
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Add timestamp
             })
             .then(() => {
-                alert(`Peminjaman ${apdItem} (${quantity} unit) oleh ${borrowerName} berhasil!`);
+                alert(`Peminjaman oleh ${borrowerName} berhasil diajukan!`);
                 this.reset();
+                resetCameraAndPhoto(); // Reset camera and photo after successful submission
                 showPage('main-page');
             })
             .catch(error => {
@@ -519,27 +741,30 @@
             const formattedDate = today.toISOString().split('T')[0];
             document.getElementById('tanggal-pinjam').value = formattedDate;
             
-            // Load data for data display page
-            if (document.getElementById('data-page')) {
+            // Load data for data display page if it's the active page on load
+            if (document.getElementById('data-page').classList.contains('active')) {
                 loadBorrowingData();
             }
         };
 
         function loadBorrowingData() {
-            db.collection("borrowings").get()
+            db.collection("borrowings").orderBy("timestamp", "desc").get()
                 .then((querySnapshot) => {
-                    const tbody = document.querySelector('#data-page table tbody');
+                    const tbody = document.getElementById('borrowing-data-body');
                     tbody.innerHTML = ''; // Clear existing rows
                     
                     querySnapshot.forEach((doc) => {
                         const data = doc.data();
+                        const apdList = data.apdItems.map(item => `${item.item} (${item.quantity})`).join(', ');
                         const row = `
                             <tr>
                                 <td>${data.borrowerName}</td>
+                                <td>${data.phoneNumber}</td>
                                 <td>${data.department}</td>
-                                <td>${data.apdItem}</td>
-                                <td>${data.quantity}</td>
+                                <td>${data.apdLocation}</td>
+                                <td>${apdList}</td>
                                 <td>${data.borrowDate}</td>
+                                <td><a href="${data.photoUrl}" target="_blank">Lihat Foto</a></td>
                             </tr>
                         `;
                         tbody.innerHTML += row;
