@@ -288,6 +288,7 @@
             margin-bottom: 15px;
             display: block;
             object-fit: cover;
+            transform: scaleX(-1); /* Added for mirror effect */
         }
         
         #photo-preview {
@@ -690,8 +691,16 @@
             photoCanvas.height = height;
             
             const context = photoCanvas.getContext('2d');
+            
+            // Add these two lines to mirror the image on the canvas
+            context.translate(width, 0); // Move the origin to the right edge
+            context.scale(-1, 1);        // Flip the context horizontally
+
             context.drawImage(video, 0, 0, width, height);
             
+            // Reset the canvas transformation for future drawings if needed (though not strictly necessary here)
+            context.setTransform(1, 0, 0, 1, 0, 0); 
+
             // Reduce quality to 30% and use JPEG for smaller file size
             const dataUrl = photoCanvas.toDataURL('image/jpeg', 0.3); 
             
