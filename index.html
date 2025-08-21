@@ -12,19 +12,19 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
             background-color: #f5f5f5;
             color: #333;
             line-height: 1.6;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
-        
+
         /* Header Section */
         header {
             background-color: #1e3a8a;
@@ -33,20 +33,20 @@
             text-align: center;
             margin-bottom: 30px;
             border-bottom: 5px solid #1e40af;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Added shadow */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         header h1 {
-            font-size: 2.5rem; /* Slightly larger font */
+            font-size: 2.5rem;
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
-        
+
         header p {
-            font-size: 1.1rem; /* Slightly larger text */
+            font-size: 1.1rem;
             opacity: 0.9;
         }
-        
+
         /* Main Menu Section */
         .main-menu {
             display: flex;
@@ -55,52 +55,52 @@
             margin-bottom: 40px;
             flex-wrap: wrap;
         }
-        
+
         .menu-card {
             background-color: white;
-            border-radius: 12px; /* Slightly more rounded */
+            border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             padding: 30px;
             width: 300px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 1px solid #eee; /* Subtle border */
+            border: 1px solid #eee;
         }
-        
+
         .menu-card:hover {
-            transform: translateY(-8px); /* More pronounced lift */
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
         }
-        
+
         .menu-card i {
-            font-size: 3.5rem; /* Slightly larger icon */
+            font-size: 3.5rem;
             margin-bottom: 20px;
             color: #1e3a8a;
         }
-        
+
         .menu-card h2 {
             margin-bottom: 15px;
             color: #1e3a8a;
             font-size: 1.5rem;
             text-align: center;
         }
-        
+
         .menu-card p {
             color: #666;
-            font-size: 1rem; /* Slightly larger text */
+            font-size: 1rem;
         }
-        
+
         /* Page Content Styles */
         .page {
             display: none;
-            animation: fadeIn 0.6s ease-out; /* Slightly longer and smoother animation */
+            animation: fadeIn 0.6s ease-out;
             background-color: white;
             padding: 30px;
-            border-radius: 12px; /* Consistent border-radius */
+            border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .page.active {
             display: block;
         }
@@ -112,19 +112,22 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            justify-content: center; /* Pemusatan diperbarui */
+            text-align: center; /* Pemusatan diperbarui */
         }
 
         .page .subtitle {
             color: #555;
             margin-bottom: 25px;
             font-size: 1.1rem;
+            text-align: center; /* Pemusatan subtitle */
         }
-        
+
         /* Form Group Styles */
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
@@ -132,14 +135,14 @@
             color: #1e3a8a;
             font-size: 1rem;
         }
-        
-        .form-group input, 
+
+        .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ccc; /* Lighter border */
-            border-radius: 8px; /* More rounded inputs */
+            border: 1px solid #ccc;
+            border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
@@ -151,19 +154,19 @@
             box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
             outline: none;
         }
-        
+
         .form-group textarea {
-            height: 120px; /* Slightly taller textarea */
-            resize: vertical; /* Allow vertical resizing */
+            height: 120px;
+            resize: vertical;
         }
-        
+
         /* Button Styles */
         button {
             background-color: #1e3a8a;
             color: white;
             border: none;
-            padding: 12px 28px; /* Slightly more padding */
-            border-radius: 8px; /* More rounded buttons */
+            padding: 12px 28px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1.05rem;
             transition: background-color 0.3s ease, transform 0.2s ease;
@@ -172,71 +175,71 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         button:hover {
             background-color: #1e40af;
             transform: translateY(-2px);
         }
-        
+
         .back-button {
             background-color: #6b7280;
             margin-right: 15px;
         }
-        
+
         .back-button:hover {
             background-color: #4b5563;
         }
-        
+
         .button-group {
             display: flex;
-            justify-content: flex-end;
+            justify-content: center; /* Pemusatan diperbarui */
             margin-top: 30px;
-            gap: 15px; /* Space between buttons */
+            gap: 15px;
         }
-        
+
         /* Table Styles (for future use, e.g., data display) */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             border-radius: 8px;
-            overflow: hidden; /* Ensures rounded corners apply to table */
+            overflow: hidden;
         }
-        
+
         th, td {
-            padding: 15px; /* More padding */
+            padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #eee; /* Lighter border */
+            border-bottom: 1px solid #eee;
         }
-        
+
         th {
-            background-color: #e0e7ff; /* Lighter blue background */
+            background-color: #e0e7ff;
             font-weight: 700;
             color: #1e3a8a;
             text-transform: uppercase;
             font-size: 0.9rem;
         }
-        
+
         tr:hover {
-            background-color: #f0f4ff; /* Lighter hover effect */
+            background-color: #f0f4ff;
         }
-        
+
         /* Keyframe Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); } /* More pronounced start */
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         /* Responsive styles */
         @media (max-width: 768px) {
             .main-menu {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
             .menu-card {
                 width: 90%;
-                max-width: 350px; /* Limit card width on smaller screens */
+                max-width: 350px;
             }
 
             .page {
@@ -247,6 +250,12 @@
                 font-size: 1.7rem;
                 flex-direction: column;
                 align-items: flex-start;
+                justify-content: flex-start; /* Sesuaikan untuk responsif */
+                text-align: left; /* Sesuaikan untuk responsif */
+            }
+
+            .page .subtitle {
+                text-align: left; /* Sesuaikan untuk responsif */
             }
 
             .button-group {
@@ -283,15 +292,15 @@
             width: 100%;
             max-width: 400px;
             height: auto;
-            aspect-ratio: 4/3; /* Standard camera ratio */
+            aspect-ratio: 4/3;
             border: 1px solid #ccc;
             border-radius: 8px;
             margin-bottom: 15px;
             display: block;
             object-fit: cover;
-            transform: scaleX(-1); /* Added for mirror effect */
+            transform: scaleX(-1);
         }
-        
+
         #photo-preview {
             width: 100%;
             max-width: 400px;
@@ -300,15 +309,6 @@
             border-radius: 8px;
             margin-bottom: 15px;
             display: none;
-        }
-        
-        #photo-canvas {
-            display: none;
-        }
-
-        #photo-preview {
-            display: none;
-            margin-top: 15px;
         }
 
         #photo-canvas {
@@ -366,15 +366,15 @@
 
         /* MODAL STYLES */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1001; /* Sit on top */
+            display: none;
+            position: fixed;
+            z-index: 1001;
             left: 0;
             top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
             justify-content: center;
             align-items: center;
         }
@@ -394,7 +394,7 @@
         }
 
         @keyframes zoom {
-            from {transform:scale(0)} 
+            from {transform:scale(0)}
             to {transform:scale(1)}
         }
 
@@ -429,7 +429,7 @@
             messagingSenderId: "128363041389",
             appId: "1:128363041389:web:d92c4fcb9e8e30883be564"
         };
-        
+
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -443,7 +443,7 @@
             <p>Manajemen alat pelindung diri dengan mudah dan efisien</p>
         </div>
     </header>
-    
+
     <div class="container">
         <!-- Main Menu Page -->
         <div id="main-page" class="page active">
@@ -453,7 +453,7 @@
                     <h2>Peminjaman APD</h2>
                     <p>Formulir untuk meminjam alat pelindung diri</p>
                 </div>
-                
+
                 <!-- Mengarahkan ke pengembalian.html -->
                 <div class="menu-card" onclick="window.location.href='pengembalian.html'">
                     <i class="fas fa-reply"></i>
@@ -469,23 +469,23 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Borrowing Page -->
         <div id="peminjaman-page" class="page">
             <h2><i class="fas fa-shield-alt"></i> Form Peminjaman APD</h2>
             <p class="subtitle">Silahkan isi formulir dibawah ini untuk meminjam APD</p>
-            
+
             <form id="borrow-form">
                 <div class="form-group">
                     <label for="nama-peminjam">Nama Peminjam</label>
                     <input type="text" id="nama-peminjam" placeholder="Masukkan nama lengkap" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="nomor-hp">Nomor Handphone</label>
                     <input type="tel" id="nomor-hp" placeholder="Masukkan nomor handphone" pattern="[0-9]{10,15}" title="Nomor handphone harus angka, 10-15 digit" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="departemen">Divisi</label>
                     <select id="departemen" required>
@@ -503,12 +503,12 @@
                     <label for="lokasi-apd">Lokasi APD</label>
                     <input type="text" id="lokasi-apd" placeholder="Masukkan lokasi APD (misal: Puri/Arteri)" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="tanggal-pinjam">Tanggal Peminjaman</label>
                     <input type="date" id="tanggal-pinjam" required>
                 </div>
-                
+
                 <div id="apd-items-container">
                     <div class="apd-item-entry">
                         <div class="form-group">
@@ -531,7 +531,7 @@
                     </div>
                 </div>
                 <button type="button" id="add-apd-item" style="margin-bottom: 20px;"><i class="fas fa-plus-circle"></i> Tambah APD Lain</button>
-                
+
                 <div class="form-group">
                     <label for="tujuan-kunjungan">Tujuan Kunjungan</label>
                     <textarea id="tujuan-kunjungan" placeholder="Jelaskan tujuan kunjungan atau penggunaan APD"></textarea>
@@ -548,19 +548,19 @@
                     <input type="hidden" id="photo-url" required>
                     <p style="font-size: 0.9em; color: red; margin-top: 5px;" id="photo-required-message">Foto wajib diambil sebelum mengajukan peminjaman.</p>
                 </div>
-                
+
                 <div class="button-group">
                     <button type="button" class="back-button" onclick="showPage('main-page')"><i class="fas fa-arrow-left"></i> Kembali</button>
                     <button type="submit" id="submit-borrow-form" disabled><i class="fas fa-save"></i> Ajukan Peminjaman</button>
                 </div>
             </form>
         </div>
-        
+
         <!-- Konseptual: Data Display Page -->
         <div id="data-page" class="page">
             <h2><i class="fas fa-list-alt"></i> Data Peminjaman & Pengembalian</h2>
             <p class="subtitle">Berikut adalah riwayat peminjaman dan pengembalian APD.</p>
-            
+
             <h3>Riwayat Peminjaman</h3>
             <table>
                 <thead>
@@ -608,7 +608,7 @@
         <span class="close-modal">&times;</span>
         <img class="modal-content" id="modalImage">
     </div>
-    
+
     <script>
         // Global variables for camera
         let stream;
@@ -620,10 +620,10 @@
             document.querySelectorAll('.page').forEach(page => {
                 page.classList.remove('active');
             });
-            
+
             // Show selected page
             document.getElementById(pageId).classList.add('active');
-            
+
             // If navigating to peminjaman-page, start camera automatically
             if (pageId === 'peminjaman-page') {
                 startCamera();
@@ -634,7 +634,7 @@
                 // Stop camera if navigating away from peminjaman-page
                 stopCamera();
             }
-            
+
             // Scroll to top for better UX
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -650,7 +650,7 @@
 
         async function startCamera() {
             // Reset photo status and UI elements when starting camera
-            resetCameraAndPhoto(); 
+            resetCameraAndPhoto();
             try {
                 // Request front camera
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
@@ -681,30 +681,30 @@
                 showValidationError("Kamera belum aktif. Silakan coba lagi.");
                 return;
             }
-            
+
             // Calculate aspect ratio and set canvas dimensions
             const videoAspectRatio = video.videoWidth / video.videoHeight;
             const maxWidth = 640; // Max width for captured image
             const width = Math.min(video.videoWidth, maxWidth);
             const height = (video.videoHeight / video.videoWidth) * width;
-            
+
             photoCanvas.width = width;
             photoCanvas.height = height;
-            
+
             const context = photoCanvas.getContext('2d');
-            
+
             // Add these two lines to mirror the image on the canvas
             context.translate(width, 0); // Move the origin to the right edge
             context.scale(-1, 1);        // Flip the context horizontally
 
             context.drawImage(video, 0, 0, width, height);
-            
+
             // Reset the canvas transformation for future drawings if needed (though not strictly necessary here)
-            context.setTransform(1, 0, 0, 1, 0, 0); 
+            context.setTransform(1, 0, 0, 1, 0, 0);
 
             // Reduce quality to 30% and use JPEG for smaller file size
-            const dataUrl = photoCanvas.toDataURL('image/jpeg', 0.3); 
-            
+            const dataUrl = photoCanvas.toDataURL('image/jpeg', 0.3);
+
             // Log size for debugging
             console.log("Captured photo Base64 size:", (dataUrl.length * 0.75 / 1024).toFixed(2) + " KB");
 
@@ -741,7 +741,7 @@
             submitBorrowFormButton.disabled = true;
             photoRequiredMessage.style.display = 'block';
         }
-        
+
         // Add/Remove APD Items
         let apdItemCount = 1;
         document.getElementById('add-apd-item').addEventListener('click', () => {
@@ -797,7 +797,7 @@
             // Remove any existing notifications first
             const existing = document.querySelector('.validation-notification');
             if (existing) document.body.removeChild(existing);
-            
+
             const notification = document.createElement('div');
             notification.className = 'validation-notification';
             notification.innerHTML = `
@@ -805,10 +805,10 @@
                 <span>${message}</span>
             `;
             document.body.appendChild(notification);
-            
+
             // Make visible
             setTimeout(() => notification.classList.add('show'), 10);
-            
+
             // Auto-hide after 3 seconds
             setTimeout(() => {
                 notification.classList.remove('show');
@@ -823,7 +823,7 @@
         // Form submission handlers
         document.getElementById('borrow-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             // Validate all required fields
             const requiredFields = [
                 {id: 'nama-peminjam', message: 'Nama peminjam wajib diisi'},
@@ -832,9 +832,9 @@
                 {id: 'lokasi-apd', message: 'Lokasi APD wajib diisi'},
                 {id: 'tanggal-pinjam', message: 'Tanggal peminjaman wajib diisi'}
             ];
-            
+
             let isValid = true;
-            
+
             for (const field of requiredFields) {
                 const element = document.getElementById(field.id);
                 if (!element.value || element.value.trim() === '') {
@@ -869,9 +869,9 @@
                     }
                 }
             }
-            
+
             if (!isValid) return;
-            
+
             if (!photoTaken) {
                 showValidationError("Anda harus mengambil foto sebelum mengajukan peminjaman!");
                 return;
@@ -893,7 +893,7 @@
             });
 
             // Foto akan disimpan langsung sebagai Base64 di Firestore
-            const photoDataToSave = photoDataUrl; 
+            const photoDataToSave = photoDataUrl;
 
             // Save to Firestore
             try {
@@ -923,13 +923,13 @@
                 }
             }
         });
-        
+
         // Set default date for borrowing form to today
         window.onload = function() {
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             document.getElementById('tanggal-pinjam').value = formattedDate;
-            
+
             // Load data for data display page if it's the active page on load
             if (document.getElementById('data-page').classList.contains('active')) {
                 loadBorrowingData();
@@ -942,7 +942,7 @@
                 .then((querySnapshot) => {
                     const tbody = document.getElementById('borrowing-data-body');
                     tbody.innerHTML = ''; // Clear existing rows
-                    
+
                     querySnapshot.forEach((doc) => {
                         const data = doc.data();
                         const apdList = data.apdItems.map(item => `${item.item} (${item.quantity})`).join(', ');
@@ -972,7 +972,7 @@
                 .then((querySnapshot) => {
                     const tbody = document.getElementById('return-data-body');
                     tbody.innerHTML = ''; // Clear existing rows
-                    
+
                     querySnapshot.forEach((doc) => {
                         const data = doc.data();
                         const apdList = data.apdItems.map(item => `${item.item} (${item.quantity})`).join(', ');
@@ -1005,7 +1005,7 @@
             modalImage.src = imageUrl;
         }
 
-        closeModal.onclick = function() { 
+        closeModal.onclick = function() {
             imageModal.style.display = "none";
         }
 
