@@ -190,6 +190,14 @@
             background-color: #4b5563;
         }
 
+        .export-button {
+            background-color: #16a34a;
+        }
+
+        .export-button:hover {
+            background-color: #15803d;
+        }
+
         .button-group {
             display: flex;
             justify-content: center;
@@ -295,6 +303,7 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
+            align-items: center;
         }
 
         .search-box {
@@ -526,6 +535,8 @@
     <!-- Add Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <!-- Add SheetJS library for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCSrUUuN4MkBxONR2NxiAAZr_oygy9p_3M",
@@ -607,6 +618,13 @@
                 <h2><i class="fas fa-boxes"></i> Kelola Stok APD</h2>
                 <p class="subtitle">Kelola jumlah stok APD di setiap lokasi</p>
                 
+                <div class="admin-controls">
+                    <div></div> <!-- Empty div for alignment -->
+                    <button type="button" class="export-button" onclick="exportStockToExcel()">
+                        <i class="fas fa-file-excel"></i> Export ke Excel
+                    </button>
+                </div>
+                
                 <div class="stock-management">
                     <div class="stock-card">
                         <h3><i class="fas fa-map-marker-alt"></i> Lokasi Puri</h3>
@@ -647,6 +665,9 @@
                             <option value="borrowed">Dipinjam</option>
                             <option value="returned">Dikembalikan</option>
                         </select>
+                        <button type="button" class="export-button" onclick="exportBorrowingToExcel()">
+                            <i class="fas fa-file-excel"></i> Export ke Excel
+                        </button>
                     </div>
                 </div>
                 
@@ -684,6 +705,9 @@
                         <input type="text" id="search-return" placeholder="Cari nama peminjam...">
                         <button type="button" id="clear-search-return"><i class="fas fa-times"></i></button>
                     </div>
+                    <button type="button" class="export-button" onclick="exportReturnToExcel()">
+                        <i class="fas fa-file-excel"></i> Export ke Excel
+                    </button>
                 </div>
                 
                 <table>
@@ -975,6 +999,138 @@
                     showValidationError("Gagal memperbarui status peminjaman.");
                 });
             }
+        }
+
+        // Export stock data to Excel
+        function exportStockToExcel() {
+            // Prepare data for Excel
+            const data = [];
+            
+            // Add headers
+            data.push(["Lokasi", "Jenis APD", "Jumlah Stok"]);
+            
+            // Add Puri stock data
+            for (const [apdType, quantity] of Object.entries(apdStock.Puri)) {
+                data.push(["Puri", getApdDisplayName(apdType), quantity]);
+            }
+            
+            // Add Arteri stock data
+            for (const [apdType, quantity] of Object.entries(apdStock.Arteri)) {
+                data.push(["Arteri", getApdDisplayName(apdType), quantity]);
+            }
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Stok APD");
+            
+            // Generate Excel file and download
+            XLSX.writeFile(wb, `Stok_APD_${new Date().toISOString().split('T')[0]}.xlsx`);
+            
+            showValidationSuccess("Data stok berhasil diexport ke Excel!");
+        }
+
+        // Export borrowing data to Excel
+        function exportBorrowingToExcel() {
+            db.collection("borrowings").orderBy("timestamp", "desc").get()
+                .then((querySnapshot) => {
+                    // Prepare data for Excel
+                    const data = [];
+                    
+                    // Add headers
+                    data.push([
+                        "Nama Peminjam", 
+                        "No. HP", 
+                        "Departemen", 
+                        "Lokasi APD", 
+                        "APD Dipinjam", 
+                        "Tanggal Pinjam", 
+                        "Status"
+                    ]);
+                    
+                    // Add data rows
+                    querySnapshot.forEach((doc) => {
+                        const rowData = doc.data();
+                        const apdList = rowData.apdItems.map(item => `${getApdDisplayName(item.item)} (${item.quantity})`).join(', ');
+                        const statusText = rowData.status === 'borrowed' ? 'Dipinjam' : 'Dikembalikan';
+                        
+                        data.push([
+                            rowData.borrowerName,
+                            rowData.phoneNumber,
+                            rowData.department,
+                            rowData.apdLocation,
+                            apdList,
+                            rowData.borrowDate,
+                            statusText
+                        ]);
+                    });
+                    
+                    // Create worksheet
+                    const ws = XLSX.utils.aoa_to_sheet(data);
+                    
+                    // Create workbook
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Data Peminjaman");
+                    
+                    // Generate Excel file and download
+                    XLSX.writeFile(wb, `Data_Peminjaman_APD_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    
+                    showValidationSuccess("Data peminjaman berhasil diexport ke Excel!");
+                })
+                .catch((error) => {
+                    console.error("Error exporting borrowing data: ", error);
+                    showValidationError("Gagal mengekspor data peminjaman.");
+                });
+        }
+
+        // Export return data to Excel
+        function exportReturnToExcel() {
+            db.collection("returns").orderBy("returnDate", "desc").get()
+                .then((querySnapshot) => {
+                    // Prepare data for Excel
+                    const data = [];
+                    
+                    // Add headers
+                    data.push([
+                        "Nama Peminjam", 
+                        "APD Dikembalikan", 
+                        "Kondisi", 
+                        "Tanggal Kembali", 
+                        "Catatan"
+                    ]);
+                    
+                    // Add data rows
+                    querySnapshot.forEach((doc) => {
+                        const rowData = doc.data();
+                        const apdList = rowData.apdItems.map(item => `${getApdDisplayName(item.item)} (${item.quantity})`).join(', ');
+                        
+                        data.push([
+                            rowData.borrowerName,
+                            apdList,
+                            rowData.condition,
+                            rowData.returnDate,
+                            rowData.notes || '-'
+                        ]);
+                    });
+                    
+                    // Create worksheet
+                    const ws = XLSX.utils.aoa_to_sheet(data);
+                    
+                    // Create workbook
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Data Pengembalian");
+                    
+                    // Generate Excel file and download
+                    XLSX.writeFile(wb, `Data_Pengembalian_APD_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    
+                    showValidationSuccess("Data pengembalian berhasil diexport ke Excel!");
+                })
+                .catch((error) => {
+                    console.error("Error exporting return data: ", error);
+                    showValidationError("Gagal mengekspor data pengembalian.");
+                });
         }
 
         // Show validation error notification
