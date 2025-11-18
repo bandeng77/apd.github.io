@@ -642,8 +642,8 @@
         let stream;
         let photoTaken = false;
 
-        // Data stok APD berdasarkan lokasi
-        const apdStock = {
+        // Data stok APD berdasarkan lokasi - akan diambil dari Firestore
+        let apdStock = {
             "Puri": {
                 "helm": 15,
                 "sepatu-safety": 20,
@@ -662,6 +662,36 @@
             }
         };
 
+        // Load stock data from Firestore saat halaman dimuat
+        function loadStockData() {
+            db.collection("apdStock").doc("stockData").get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        apdStock = doc.data();
+                        console.log("Stok APD berhasil dimuat dari Firestore:", apdStock);
+                    } else {
+                        console.log("Data stok belum ada di Firestore, menggunakan data default");
+                        // Jika belum ada data di Firestore, simpan data default
+                        saveDefaultStockData();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading stock data: ", error);
+                    showValidationError("Gagal memuat data stok. Menggunakan data default.");
+                });
+        }
+
+        // Simpan data stok default ke Firestore jika belum ada
+        function saveDefaultStockData() {
+            db.collection("apdStock").doc("stockData").set(apdStock)
+                .then(() => {
+                    console.log("Data stok default berhasil disimpan ke Firestore");
+                })
+                .catch((error) => {
+                    console.error("Error saving default stock data: ", error);
+                });
+        }
+
         // Function to show/hide pages
         function showPage(pageId) {
             // Hide all pages
@@ -675,6 +705,8 @@
             // If navigating to peminjaman-page, start camera automatically
             if (pageId === 'peminjaman-page') {
                 startCamera();
+                // Load stock data terbaru setiap kali masuk ke halaman peminjaman
+                loadStockData();
             } else if (pageId === 'data-page') {
                 loadBorrowingData(); // Load borrowing data
                 loadReturnData();   // Load return data
@@ -878,6 +910,9 @@
             if (document.querySelectorAll('.apd-item-entry').length === 1) {
                 document.querySelector('.apd-item-entry .remove-apd-item').style.display = 'none';
             }
+            
+            // Load stock data saat halaman pertama kali dimuat
+            loadStockData();
         });
 
         // Show validation error notification
@@ -1001,8 +1036,20 @@
             // Foto akan disimpan langsung sebagai Base64 di Firestore
             const photoDataToSave = photoDataUrl;
 
+            // Update stock setelah peminjaman berhasil
+            const location = document.getElementById('lokasi-apd').value;
+            const updatedStock = {...apdStock};
+            
+            // Kurangi stok untuk setiap item yang dipinjam
+            apdItems.forEach(item => {
+                if (updatedStock[location] && updatedStock[location][item.item]) {
+                    updatedStock[location][item.item] -= item.quantity;
+                }
+            });
+
             // Save to Firestore
             try {
+                // Simpan data peminjaman
                 await db.collection("borrowings").add({
                     borrowerName,
                     phoneNumber,
@@ -1015,6 +1062,13 @@
                     status: "borrowed", // Default status
                     timestamp: firebase.firestore.FieldValue.serverTimestamp() // Add timestamp
                 });
+
+                // Update stok di Firestore
+                await db.collection("apdStock").doc("stockData").set(updatedStock);
+                
+                // Update stok lokal
+                apdStock = updatedStock;
+
                 alert(`Peminjaman oleh ${borrowerName} berhasil diajukan!`);
                 this.reset();
                 resetCameraAndPhoto(); // Reset camera and photo after successful submission
